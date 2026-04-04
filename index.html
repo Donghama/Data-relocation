@@ -11,17 +11,17 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --sidebar-bg: #EDE9E3;
-      --main-bg: #F5F3EE;
+      --sidebar-bg: #EBEBEB;
+      --main-bg: #F5F5F5;
       --input-bg: #FFFFFF;
-      --border: #D8D3CC;
-      --text-primary: #1C1917;
-      --text-secondary: #6B6560;
-      --text-muted: #A09990;
-      --hover-bg: #E5E0D9;
-      --active-bg: #DDD8D1;
+      --border: #DEDEDE;
+      --text-primary: #1A1A1A;
+      --text-secondary: #6B6B6B;
+      --text-muted: #A0A0A0;
+      --hover-bg: #E8E8E8;
+      --active-bg: #DFDFDF;
       --accent: #D97757;
-      --send-btn: #1C1917;
+      --send-btn: #1A1A1A;
       --radius: 12px;
     }
 
@@ -380,7 +380,7 @@
     }
     .export-btn:hover { opacity: 0.85; }
 
-    /* ── CONDITION A OVERLAY ── */
+    /* ── CONDITION A OVERLAY — Terminal Log ── */
     #cond-a {
       position: fixed; inset: 0; background: rgba(0,0,0,0.65);
       z-index: 200; display: none; align-items: center; justify-content: center;
@@ -390,373 +390,138 @@
       background: var(--main-bg); border-radius: 16px; width: 700px; max-width: 96vw;
       max-height: 92vh; overflow-y: auto;
       padding: 0; box-shadow: 0 12px 50px rgba(0,0,0,0.6);
-      display: flex; flex-direction: column; align-items: center; gap: 0;
     }
-
-    .a-stage {
-      display: flex; align-items: center; justify-content: center; gap: 60px;
-      width: 100%; padding: 32px 40px 0; margin-bottom: 32px;
+    /* Terminal header */
+    .a-observe-bar {
+      padding: 12px 20px; text-align: center;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em;
+      word-break: keep-all; border-radius: 16px 16px 0 0;
+      background: var(--hover-bg);
     }
-
-    /* Pulsing visualizer */
-    .viz-wrap { position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .viz-ring {
-      position: absolute; border-radius: 50%; border: 2px solid;
-      animation: pRing 2s ease-out infinite;
+    /* Terminal window */
+    .a-terminal {
+      background: #0D1117;
+      padding: 20px 24px;
+      font-family: 'SF Mono','Fira Code','Roboto Mono','Courier New',monospace;
+      font-size: 12.5px; line-height: 1.9;
+      min-height: 280px; max-height: 360px; overflow-y: auto;
     }
-    .viz-core {
-      width: 72px; height: 72px; border-radius: 50%;
-      position: relative; z-index: 2;
-      /* Pure CSS — no emoji */
+    .a-log-line {
+      display: flex; gap: 10px;
+      opacity: 0; transform: translateY(3px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
     }
-    .viz-label {
-      position: absolute; bottom: -28px; font-size: 11px; font-weight: 500;
-      letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+    .a-log-line.visible { opacity: 1; transform: translateY(0); }
+    .a-log-time { color: #4B5563; flex-shrink: 0; user-select: none; }
+    .a-log-src { font-weight: 700; flex-shrink: 0; }
+    .a-log-src.sys { color: #6B7280; }
+    .a-log-src.gpt { color: #60A5FA; }
+    .a-log-src.cld { color: #34D399; }
+    .a-log-msg { color: #D1D5DB; word-break: break-all; }
+    .a-log-msg.ok { color: #34D399; }
+    .a-log-msg.info { color: #93C5FD; }
+    .a-log-cursor {
+      display: inline-block; width: 8px; height: 14px; background: #6B7280;
+      margin-left: 4px; vertical-align: middle;
+      animation: termCursorBlink 0.85s infinite;
     }
-
-    /* Source (blue) */
-    .viz-wrap.src .viz-core { background: #2563eb; box-shadow: 0 0 28px rgba(37,99,235,0.45); }
-    .viz-wrap.src .viz-ring { border-color: rgba(59,130,246,0.5); }
-    .viz-wrap.src .viz-ring:nth-child(1) { width: 90px; height: 90px; animation-delay: 0s; }
-    .viz-wrap.src .viz-ring:nth-child(2) { width: 120px; height: 120px; animation-delay: 0.4s; }
-    .viz-wrap.src .viz-ring:nth-child(3) { width: 150px; height: 150px; animation-delay: 0.8s; }
-    .viz-wrap.src .viz-label { color: #1d4ed8; }
-
-    /* Target (green) */
-    .viz-wrap.tgt .viz-core { background: #059669; box-shadow: 0 0 28px rgba(5,150,105,0.45); }
-    .viz-wrap.tgt .viz-ring { border-color: rgba(16,185,129,0.5); }
-    .viz-wrap.tgt .viz-ring:nth-child(1) { width: 90px; height: 90px; animation-delay: 0.2s; }
-    .viz-wrap.tgt .viz-ring:nth-child(2) { width: 120px; height: 120px; animation-delay: 0.6s; }
-    .viz-wrap.tgt .viz-ring:nth-child(3) { width: 150px; height: 150px; animation-delay: 1.0s; }
-    .viz-wrap.tgt .viz-label { color: #047857; }
-
-    @keyframes pRing {
-      0% { transform: scale(0.85); opacity: 0.9; }
-      100% { transform: scale(1.4); opacity: 0; }
+    @keyframes termCursorBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+    /* Footer with progress */
+    .a-terminal-footer {
+      padding: 16px 24px 24px;
+      display: flex; flex-direction: column; gap: 12px;
     }
-
-    /* Stream connector */
-    .stream-connector {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      flex-shrink: 0;
+    .a-progress-row {
+      display: flex; align-items: center; gap: 10px;
     }
-    .stream-track {
-      width: 120px; height: 6px; background: var(--border);
+    .a-progress-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .a-progress-track {
+      flex: 1; height: 4px; background: var(--border);
       border-radius: 99px; overflow: hidden;
     }
-    .stream-bar {
-      height: 100%; width: 40%;
-      background: linear-gradient(90deg, #3b82f6, #10b981);
-      border-radius: 99px;
-      animation: sBar 1.6s ease-in-out infinite;
+    .a-progress-fill {
+      height: 100%; width: 0; background: #1A1A1A;
+      border-radius: 99px; transition: width 0.5s ease;
     }
-    @keyframes sBar {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(350%); }
-    }
-    .stream-pct { font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; }
-    .stream-pct-label { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
+    .a-progress-pct { font-size: 11px; color: var(--text-secondary); min-width: 34px; text-align: right; }
 
-    /* Captions */
-    .a-captions {
-      width: 100%; max-width: 640px;
-      max-height: 320px; overflow: hidden; position: relative;
-      padding: 0 24px 24px;
-    }
-    .a-captions-inner {
-      display: flex; flex-direction: column; gap: 10px;
-    }
-    .caption-line {
-      display: flex; align-items: flex-start; gap: 10px;
-      opacity: 0; transform: translateY(12px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      font-size: 14px; color: var(--text-secondary); line-height: 1.55;
-      word-break: keep-all;
-    }
-    .caption-line.visible { opacity: 1; transform: translateY(0); }
-    .caption-icon {
-      width: 3px; border-radius: 99px; flex-shrink: 0;
-      align-self: stretch; margin-top: 2px;
-    }
-    .caption-icon.s { background: #2563eb; }
-    .caption-icon.t { background: #059669; }
-    mark.sg { background: rgba(37,99,235,0.12); color: #1d4ed8; border-radius: 3px; padding: 0 3px; }
-    mark.tg { background: rgba(5,150,105,0.12); color: #047857; border-radius: 3px; padding: 0 3px; }
-
-    /* ── CONDITION B OVERLAY — Two-Tab Import Flow ── */
+    /* ── CONDITION B OVERLAY — Collaborative Selection ── */
     #cond-b {
       position: fixed; inset: 0; background: rgba(0,0,0,0.65);
       z-index: 200; display: none; align-items: center; justify-content: center;
     }
     #cond-b.open { display: flex; }
     .b-modal {
-      background: var(--main-bg); border-radius: 16px; width: 700px; max-width: 96vw;
+      background: var(--main-bg); border-radius: 16px; width: 580px; max-width: 96vw;
       max-height: 92vh; overflow-y: auto;
       padding: 0; box-shadow: 0 12px 50px rgba(0,0,0,0.6);
     }
-    .b-modal-head { padding: 24px 28px 0; }
-    .b-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; word-break: keep-all; }
-    .b-subtitle { font-size: 13px; color: var(--text-secondary); word-break: keep-all; margin-bottom: 20px; }
+    /* Step indicator (reused from shared styles) */
 
-    /* Tabs */
-    .b-tabs {
-      display: flex; border-bottom: 1.5px solid var(--border); padding: 0 28px;
+    /* Selection phase */
+    .b-select-wrap { padding: 28px 28px 24px; }
+    .b-select-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    .b-select-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; word-break: keep-all; }
+    .b-check-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .b-check-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 18px; border: 1.5px solid var(--border);
+      border-radius: 12px; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s; user-select: none;
     }
-    .b-tab-btn {
-      padding: 10px 0; margin-right: 28px; font-size: 13.5px; font-weight: 600;
-      color: var(--text-muted); border: none; background: none; cursor: pointer;
-      border-bottom: 2px solid transparent; margin-bottom: -1.5px;
-      font-family: inherit; transition: color 0.15s, border-color 0.15s;
-      display: flex; align-items: center; gap: 7px; white-space: nowrap;
+    .b-check-item:hover { border-color: #1A1A1A; background: rgba(26,26,26,0.02); }
+    .b-check-item.checked { border-color: #1A1A1A; background: rgba(26,26,26,0.04); }
+    .b-check-box {
+      width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; transition: all 0.15s; margin-top: 1px;
+      color: transparent;
     }
-    .b-tab-btn.active { color: var(--text-primary); border-bottom-color: var(--text-primary); }
-    .b-tab-dot {
-      width: 18px; height: 18px; border-radius: 50%; font-size: 10px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .b-tab-dot.done { background: #1C1917; color: #fff; }
-    .b-tab-dot.pending { background: var(--border); color: var(--text-muted); }
-    .b-tab-dot.active { background: rgba(28,25,23,0.12); color: var(--text-primary); }
-
-    /* Tab panels */
-    .b-tab-panel { display: none; padding: 24px 28px 28px; }
-    .b-tab-panel.active { display: block; }
-
-    /* Step labels */
-    .b-step-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--text-muted); margin-bottom: 6px;
-    }
-    .b-step-title {
-      font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; word-break: keep-all;
-    }
-
-    /* Prompt box */
-    .b-prompt-wrap {
-      border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 20px;
-    }
-    .b-prompt-head {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px; background: var(--hover-bg); border-bottom: 1px solid var(--border);
-    }
-    .b-prompt-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-    .b-copy-prompt-btn {
-      padding: 5px 12px; border-radius: 6px; border: 1.5px solid #1C1917;
-      background: transparent; color: #1C1917; font-size: 12px; font-weight: 600;
-      cursor: pointer; font-family: inherit; transition: background 0.15s;
-      display: flex; align-items: center; gap: 5px;
-    }
-    .b-copy-prompt-btn:hover { background: rgba(28,25,23,0.08); }
-    .b-copy-prompt-btn.copied { background: #1C1917; color: #fff; border-color: #1C1917; }
-    .b-prompt-text {
-      padding: 14px; font-size: 13px; color: var(--text-primary); line-height: 1.7;
-      white-space: pre-wrap; word-break: keep-all; background: var(--input-bg);
-      max-height: 200px; overflow-y: auto;
-    }
-
-    /* Response textarea */
-    .b-response-label {
-      font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
-      margin-bottom: 6px; word-break: keep-all;
-    }
-    .b-response-area {
-      width: 100%; min-height: 100px; max-height: 160px;
-      padding: 12px; border: 1.5px solid var(--border); border-radius: 10px;
-      font-size: 13px; font-family: inherit; resize: vertical;
-      color: var(--text-primary); background: var(--input-bg);
-      transition: border-color 0.15s; line-height: 1.6;
-    }
-    .b-response-area:focus { outline: none; border-color: #1C1917; }
-    .b-response-area.filled { border-color: #1C1917; background: rgba(28,25,23,0.03); }
-    .b-next-step-btn {
-      margin-top: 16px; width: 100%; padding: 11px; border-radius: 10px; border: none;
+    .b-check-item.checked .b-check-box { background: #1A1A1A; border-color: #1A1A1A; color: #fff; }
+    .b-check-item-body { flex: 1; }
+    .b-check-item-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+    .b-check-item-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; word-break: keep-all; }
+    .b-check-count { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+    .b-transfer-btn {
+      width: 100%; padding: 13px; border-radius: 10px; border: none;
       font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
-      background: var(--hover-bg); color: var(--text-muted); transition: background 0.2s, color 0.2s;
+      background: var(--hover-bg); color: var(--text-muted);
+      transition: background 0.2s, color 0.2s;
     }
-    .b-next-step-btn.ready { background: #1C1917; color: #fff; }
-    .b-next-step-btn.ready:hover { background: #333; }
+    .b-transfer-btn.ready { background: #1A1A1A; color: #fff; }
+    .b-transfer-btn.ready:hover { background: #333; }
 
-    /* B — Phase 1: Claude settings */
-    #b-phase-settings { border-radius: 16px; overflow: hidden; }
-    .b-claude-wrap { display: flex; min-height: 400px; }
-    .b-claude-nav {
-      width: 200px; min-width: 200px; background: #ECEAE4;
-      border-right: 1px solid var(--border); border-radius: 16px 0 0 16px;
-      padding: 16px 8px;
+    /* Transfer progress phase */
+    #b-phase-progress { display: none; padding: 28px 28px 28px; }
+    #b-phase-progress.visible { display: block; }
+    .b-progress-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; }
+    .b-progress-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0; border-bottom: 1px solid var(--border);
+      font-size: 13.5px; color: var(--text-secondary);
+      transition: color 0.3s;
     }
-    .b-claude-nav-brand {
-      display: flex; align-items: center; gap: 8px; padding: 4px 10px 16px;
-      border-bottom: 1px solid rgba(0,0,0,0.07); margin-bottom: 12px;
-    }
-    .b-claude-nav-brand-icon { color: #D97757; }
-    .b-claude-nav-brand-icon svg { width: 20px; height: 20px; }
-    .b-claude-nav-brand-name { font-size: 15px; font-weight: 700; color: #1C1917; }
-    .b-claude-nav-item-b {
-      display: flex; align-items: center; gap: 9px; padding: 8px 10px;
-      border-radius: 8px; font-size: 13px; color: #6B6560; cursor: default; transition: background 0.1s;
-    }
-    .b-claude-nav-item-b svg { width: 15px; height: 15px; flex-shrink: 0; }
-    .b-claude-nav-item-b.active { background: rgba(217,119,87,0.12); color: #1C1917; font-weight: 600; }
-    .b-claude-content-area { flex: 1; padding: 28px; }
-    .b-claude-content-title { font-size: 17px; font-weight: 700; color: #1C1917; margin-bottom: 6px; letter-spacing: -0.02em; }
-    .b-claude-content-sub { font-size: 13px; color: #6B6560; margin-bottom: 22px; line-height: 1.55; word-break: keep-all; }
-    .b-import-card {
-      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
-      border: 1.5px solid var(--border); border-radius: 12px;
-      cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; margin-bottom: 10px;
-    }
-    .b-import-card:hover { border-color: #1C1917; box-shadow: 0 0 0 3px rgba(28,25,23,0.08); }
-    .b-import-card.dimmed { opacity: 0.45; cursor: default; pointer-events: none; }
-    .b-import-card-icon {
-      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    .b-progress-item:last-of-type { border-bottom: none; }
+    .b-progress-item.done { color: var(--text-primary); }
+    .b-progress-icon {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      background: var(--border); color: var(--text-muted);
+      transition: background 0.3s, color 0.3s;
     }
-    .b-import-card-icon.gpt { background: #10a37f; color: #fff; }
-    .b-import-card-icon.gemini { background: #4285f4; color: #fff; font-size: 15px; font-weight: 700; }
-    .b-import-card-info { flex: 1; }
-    .b-import-card-name { font-size: 14px; font-weight: 600; color: #1C1917; margin-bottom: 2px; }
-    .b-import-card-desc { font-size: 12px; color: #6B6560; word-break: keep-all; }
-    .b-import-soon-badge {
-      font-size: 11px; font-weight: 600; color: var(--text-secondary);
-      background: var(--hover-bg); padding: 2px 8px; border-radius: 20px; white-space: nowrap;
-    }
-    .b-import-card-arrow { color: var(--text-muted); flex-shrink: 0; }
-
-    /* B — Phase 2: Prompt page */
-    #b-phase-prompt { display: none; }
-    .b-phase-prompt-inner { padding: 24px 28px 28px; }
-    .b-phase-back-btn {
-      display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
-      color: var(--text-muted); background: none; border: none; cursor: pointer;
-      font-family: inherit; margin-bottom: 18px; padding: 0; transition: color 0.1s;
-    }
-    .b-phase-back-btn:hover { color: var(--text-secondary); }
-    .b-prompt-context {
-      display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px;
-      padding: 12px 14px; background: var(--hover-bg); border-radius: 10px;
-    }
-    .b-prompt-context-icon {
-      width: 30px; height: 30px; border-radius: 7px; background: #10a37f;
-      color: #fff; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; font-size: 12px; font-weight: 700;
-    }
-    .b-prompt-context-text { font-size: 13px; color: var(--text-secondary); line-height: 1.55; word-break: keep-all; }
-    .b-prompt-context-text strong { color: var(--text-primary); }
-
-    /* B — Phase 3: Claude memory */
-    #b-phase-tabs { display: none; }
-    .b-phase-tabs-inner { padding: 24px 28px 28px; }
-    .b-phase-tabs-header {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-    }
-    .b-phase-tabs-back {
-      display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
-      color: var(--text-muted); background: none; border: none; cursor: pointer;
-      font-family: inherit; padding: 0; transition: color 0.1s;
-    }
-    .b-phase-tabs-back:hover { color: var(--text-secondary); }
-    .b-phase-tabs-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
-
-    /* Step 2: send instruction */
-    .b-send-instruction {
-      display: flex; align-items: flex-start; gap: 10px;
-      margin-bottom: 12px; padding: 12px 14px;
-      background: var(--hover-bg); border-radius: 10px;
-    }
-    .b-send-num {
-      width: 20px; height: 20px; border-radius: 50%; background: #1C1917; color: #fff;
-      font-size: 11px; font-weight: 700; display: flex; align-items: center;
-      justify-content: center; flex-shrink: 0; margin-top: 1px;
-    }
-    .b-send-text { font-size: 13px; color: var(--text-secondary); line-height: 1.55; word-break: keep-all; }
-    .b-get-response-btn {
-      width: 100%; padding: 11px; border-radius: 10px; border: 1.5px solid #1C1917;
-      background: rgba(28,25,23,0.06); color: #1C1917; font-size: 14px; font-weight: 600;
-      font-family: inherit; cursor: pointer; transition: background 0.15s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      margin-bottom: 16px;
-    }
-    .b-get-response-btn:hover { background: rgba(28,25,23,0.12); }
-    .b-get-response-btn:disabled { opacity: 0.5; cursor: wait; }
-
-    /* Typing dots animation */
-    .b-typing-dots span {
-      animation: bTypeDot 1.2s infinite;
-      display: inline-block; font-size: 18px; line-height: 1;
-    }
-    .b-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .b-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bTypeDot { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
-
-    /* ChatGPT response bubble */
-    .b-chat-bubble-wrap {
-      display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px;
-    }
-    .b-gpt-avatar {
-      width: 28px; height: 28px; border-radius: 50%; background: #10a37f;
-      color: #fff; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; margin-top: 2px;
-    }
-    .b-chat-bubble {
-      flex: 1; background: var(--input-bg); border: 1.5px solid var(--border);
-      border-radius: 4px 12px 12px 12px; padding: 12px 14px;
-    }
-    .b-chat-bubble-label {
-      font-size: 11px; font-weight: 700; color: #10a37f; letter-spacing: 0.04em;
-      margin-bottom: 8px; text-transform: uppercase;
-    }
-    .b-chat-bubble-text {
-      font-size: 13px; color: var(--text-primary); line-height: 1.7;
-      white-space: pre-wrap; word-break: keep-all;
-      max-height: 200px; overflow-y: auto;
-    }
-    .b-typing-cursor {
-      display: inline-block; width: 2px; height: 14px; background: var(--text-primary);
-      margin-left: 2px; vertical-align: middle;
-      animation: bCursorBlink 0.7s infinite;
-    }
-    .b-typing-cursor.done { display: none; }
-    @keyframes bCursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-    /* Claude tab — memory state */
-    .b-claude-content-box {
-      border: 1.5px solid var(--border); border-radius: 10px;
-      background: var(--input-bg); padding: 14px; font-size: 13px;
-      color: var(--text-primary); line-height: 1.7; max-height: 200px; overflow-y: auto;
-      white-space: pre-wrap; word-break: break-word; margin-bottom: 20px;
-    }
-    .b-claude-content-box.empty {
-      color: var(--text-muted); font-style: italic; min-height: 60px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .b-add-memory-btn {
-      width: 100%; padding: 11px; border-radius: 10px; border: none;
+    .b-progress-item.done .b-progress-icon { background: #1A1A1A; color: #fff; }
+    .b-progress-item.active .b-progress-icon { background: var(--hover-bg); color: var(--text-secondary); animation: aPulse 1.2s infinite; }
+    .b-complete-wrap { margin-top: 20px; }
+    .b-complete-final-btn {
+      width: 100%; padding: 13px; border-radius: 10px; border: none;
       font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
-      background: #1C1917; color: #fff; transition: background 0.2s, opacity 0.2s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      margin-bottom: 12px;
+      background: var(--hover-bg); color: var(--text-muted);
+      transition: background 0.2s, color 0.2s; display: none;
     }
-    .b-add-memory-btn:hover:not(:disabled) { background: #333; }
-    .b-add-memory-btn:disabled { opacity: 0.45; cursor: default; }
-    .b-memory-success {
-      display: none; border-radius: 10px;
-      background: rgba(28,25,23,0.06); border: 1.5px solid rgba(28,25,23,0.2);
-      padding: 14px 16px; margin-bottom: 16px;
-    }
-    .b-memory-success.visible { display: flex; align-items: flex-start; gap: 12px; }
-    .b-memory-success-icon {
-      width: 22px; height: 22px; border-radius: 50%; background: #1C1917;
-      color: #fff; display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
-    }
-    .b-memory-success-text { font-size: 13px; color: var(--text-primary); line-height: 1.65; word-break: keep-all; }
-    .b-complete-btn {
-      width: 100%; padding: 11px; border-radius: 10px; border: none;
-      font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
-      background: var(--hover-bg); color: var(--text-muted); transition: background 0.2s, color 0.2s;
-    }
-    .b-complete-btn.ready { background: #1C1917; color: #fff; }
-    .b-complete-btn.ready:hover { background: #333; }
+    .b-complete-final-btn.ready { background: #1A1A1A; color: #fff; display: block; }
+    .b-complete-final-btn.ready:hover { background: #333; }
 
     /* ── CONDITION C OVERLAY — Real Export Flow ── */
     #cond-c {
@@ -1100,6 +865,66 @@
     }
     .apikey-status.set   { background: rgba(217,119,87,0.12); color: #7C3A1E; }
     .apikey-status.unset { background: #fef3c7; color: #92400e; }
+
+    /* ── CLAUDE GREETING SCREEN ── */
+    #claude-greeting {
+      position: fixed; inset: 0; z-index: 350;
+      display: none; align-items: center; justify-content: center;
+      background: var(--main-bg); padding: 40px 24px;
+    }
+    #claude-greeting.open { display: flex; }
+    .cg-inner {
+      max-width: 480px; width: 100%;
+      animation: fadeUp 0.45s ease both;
+    }
+    .cg-from-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 24px;
+    }
+    .cg-icon { color: var(--accent); }
+    .cg-icon svg { width: 18px; height: 18px; }
+    .cg-title {
+      font-size: clamp(26px, 4vw, 36px); font-weight: 700;
+      color: var(--text-primary); letter-spacing: -0.03em;
+      line-height: 1.2; margin-bottom: 10px; word-break: keep-all;
+    }
+    .cg-greeting-text {
+      font-size: 15px; color: var(--text-secondary); line-height: 1.75;
+      margin-bottom: 24px; word-break: keep-all;
+    }
+    .cg-divider { height: 1px; background: var(--border); margin: 0 0 18px; }
+    .cg-context-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;
+    }
+    .cg-context-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+    .cg-context-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13.5px; color: var(--text-secondary);
+    }
+    .cg-check {
+      width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(26,26,26,0.10); color: #1A1A1A;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+    }
+    .cg-cta-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 100px;
+      background: var(--text-primary); color: #fff;
+      font-size: 15px; font-weight: 600; font-family: inherit;
+      border: none; cursor: pointer; letter-spacing: -0.01em;
+      transition: opacity 0.15s; width: 100%; justify-content: center;
+    }
+    .cg-cta-btn:hover { opacity: 0.85; }
+    .cg-survey-note {
+      margin-top: 14px; font-size: 12px; color: var(--text-muted);
+      line-height: 1.65; text-align: center; word-break: keep-all;
+    }
+    .cg-survey-link {
+      color: var(--text-secondary); font-weight: 600;
+    }
 
     /* Loading spinner inside Condition A overlay */
     .a-loading {
@@ -1667,40 +1492,21 @@
 <div id="cond-a">
   <div class="a-modal">
     <div class="a-observe-bar">
-      조건 A — 관찰 중 &nbsp;·&nbsp; AI가 자동으로 데이터를 이전하고 있습니다. 아래 대화를 지켜보세요.
+      조건 A — 관찰 중 &nbsp;·&nbsp; AI 간 자동 인계 프로세스가 진행 중입니다. 아래 로그를 지켜보세요.
     </div>
-    <div class="a-stage">
-      <div class="viz-wrap src">
-        <div class="viz-ring"></div>
-        <div class="viz-ring"></div>
-        <div class="viz-ring"></div>
-        <div class="viz-core"></div>
-        <span class="viz-label">ChatGPT</span>
+    <!-- Terminal log window -->
+    <div class="a-terminal" id="a-terminal"></div>
+    <!-- Footer: progress bar + done button -->
+    <div class="a-terminal-footer">
+      <div class="a-progress-row">
+        <span class="a-progress-label">이전 진행률</span>
+        <div class="a-progress-track"><div class="a-progress-fill" id="a-progress-fill"></div></div>
+        <span class="a-progress-pct" id="a-pct">0%</span>
       </div>
-
-      <div class="stream-connector">
-        <div class="stream-pct" id="a-pct">0%</div>
-        <div class="stream-track"><div class="stream-bar"></div></div>
-        <div class="stream-pct-label">이전 중</div>
-      </div>
-
-      <div class="viz-wrap tgt">
-        <div class="viz-ring"></div>
-        <div class="viz-ring"></div>
-        <div class="viz-ring"></div>
-        <div class="viz-core"></div>
-        <span class="viz-label">Claude</span>
-      </div>
+      <button id="a-done-btn" onclick="condAComplete()">
+        ⏳ 이전 완료 대기 중...
+      </button>
     </div>
-
-    <div class="a-captions">
-      <div class="a-captions-inner" id="a-captions-inner"></div>
-    </div>
-
-    <!-- Interlock button — locked until full sequence completes -->
-    <button id="a-done-btn" onclick="condAComplete()" style="margin-bottom:28px;">
-      ⏳ 이전 완료 대기 중...
-    </button>
   </div>
 </div>
 
@@ -1712,175 +1518,62 @@
     <div class="cond-step-indicator" id="b-step-ind">
       <div class="csi-item active" id="b-ind-1">
         <span class="csi-num">1</span>
-        <span class="csi-label">ChatGPT 선택</span>
+        <span class="csi-label">항목 선택</span>
       </div>
       <span class="csi-arrow">→</span>
       <div class="csi-item" id="b-ind-2">
         <span class="csi-num">2</span>
-        <span class="csi-label">프롬프트 전달</span>
-      </div>
-      <span class="csi-arrow">→</span>
-      <div class="csi-item" id="b-ind-3">
-        <span class="csi-num">3</span>
-        <span class="csi-label">메모리 추가</span>
+        <span class="csi-label">이전 완료</span>
       </div>
     </div>
 
-    <!-- Phase 1: Claude settings view -->
-    <div id="b-phase-settings">
-      <div class="b-claude-wrap">
-        <!-- Left nav -->
-        <div class="b-claude-nav">
-          <div class="b-claude-nav-brand">
-            <div class="b-claude-nav-brand-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.76 10.15a6.27 6.27 0 0 0-.54-5.15 6.35 6.35 0 0 0-6.83-3.04 6.27 6.27 0 0 0-3.91-1.53 6.35 6.35 0 0 0-6.04 4.39 6.28 6.28 0 0 0-4.19 3.04 6.35 6.35 0 0 0 .78 7.44 6.27 6.27 0 0 0 .54 5.15 6.35 6.35 0 0 0 6.83 3.04 6.27 6.27 0 0 0 3.91 1.53 6.35 6.35 0 0 0 6.05-4.4 6.28 6.28 0 0 0 4.19-3.04 6.35 6.35 0 0 0-.79-7.43z" fill="currentColor"/></svg>
+    <!-- Phase 1: Checkbox selection -->
+    <div id="b-phase-select">
+      <div class="b-select-wrap">
+        <div class="b-select-title">이전할 맥락을 선택하세요</div>
+        <div class="b-select-subtitle">아래 항목 중 Claude로 이전하고 싶은 정보를 선택하세요. 선택한 항목만 이전됩니다.</div>
+
+        <div class="b-check-list" id="b-check-list">
+          <div class="b-check-item" id="b-item-0" onclick="toggleBCheck(0)">
+            <div class="b-check-box" id="b-chk-0">✓</div>
+            <div class="b-check-item-body">
+              <div class="b-check-item-title">내 정체성 정보</div>
+              <div class="b-check-item-desc">이름, 소속, 전공 등 나에 대한 기본 정보 및 신원 데이터</div>
             </div>
-            <span class="b-claude-nav-brand-name">Claude</span>
           </div>
-          <div class="b-claude-nav-item-b">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            프로필
+          <div class="b-check-item" id="b-item-1" onclick="toggleBCheck(1)">
+            <div class="b-check-box" id="b-chk-1">✓</div>
+            <div class="b-check-item-body">
+              <div class="b-check-item-title">대화 스타일 및 말투</div>
+              <div class="b-check-item-desc">선호하는 응답 형식, 언어 스타일, 어조 및 답변 길이</div>
+            </div>
           </div>
-          <div class="b-claude-nav-item-b">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            개인 맞춤
-          </div>
-          <div class="b-claude-nav-item-b">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a9 9 0 0 1 9 9v4a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-4a9 9 0 0 1 9-9z"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
-            메모리
-          </div>
-          <div class="b-claude-nav-item-b">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            알림
-          </div>
-          <div class="b-claude-nav-item-b active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            연동 및 가져오기
+          <div class="b-check-item" id="b-item-2" onclick="toggleBCheck(2)">
+            <div class="b-check-box" id="b-chk-2">✓</div>
+            <div class="b-check-item-body">
+              <div class="b-check-item-title">업무 지식 맥락</div>
+              <div class="b-check-item-desc">진행 중인 연구 및 프로젝트, 주요 관심 분야, 맥락 정보</div>
+            </div>
           </div>
         </div>
 
-        <!-- Right content area -->
-        <div class="b-claude-content-area">
-          <div class="b-claude-content-title">연동 및 가져오기</div>
-          <div class="b-claude-content-sub">다른 AI 서비스의 대화와 설정을 Claude로 가져올 수 있습니다.</div>
-
-          <!-- ChatGPT import card (clickable) -->
-          <div class="b-import-card hint-border" id="b-chatgpt-card" onclick="showBPromptPhase()">
-            <div class="b-import-card-icon gpt">
-              <svg viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px"><path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.213-2.426 10.079 10.079 0 0 0-9.604 6.977 9.967 9.967 0 0 0-6.664 4.834 10.08 10.08 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.213 2.426 10.079 10.079 0 0 0 9.609-6.981 9.967 9.967 0 0 0 6.664-4.834 10.079 10.079 0 0 0-1.243-11.814z" fill="currentColor"/></svg>
-            </div>
-            <div class="b-import-card-info">
-              <div class="b-import-card-name">ChatGPT에서 가져오기</div>
-              <div class="b-import-card-desc">ChatGPT의 맞춤 설정과 대화 스타일을 Claude로 이전합니다</div>
-            </div>
-            <div class="b-import-card-arrow">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-            </div>
-          </div>
-        </div>
+        <div class="b-check-count" id="b-check-count">0개 항목 선택됨</div>
+        <button class="b-transfer-btn" id="b-transfer-btn" onclick="startBTransfer()" disabled>
+          이전할 항목을 선택하세요
+        </button>
       </div>
     </div>
 
-    <!-- Phase 2: Prompt to copy -->
-    <div id="b-phase-prompt">
-      <div class="b-phase-prompt-inner">
-        <button class="b-phase-back-btn" onclick="backToBSettings()">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M13 8H3M7 4l-4 4 4 4"/></svg>
-          연동 및 가져오기
-        </button>
-
-        <div class="b-prompt-context">
-          <div class="b-prompt-context-icon">
-            <svg viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px"><path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.213-2.426 10.079 10.079 0 0 0-9.604 6.977 9.967 9.967 0 0 0-6.664 4.834 10.08 10.08 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.213 2.426 10.079 10.079 0 0 0 9.609-6.981 9.967 9.967 0 0 0 6.664-4.834 10.079 10.079 0 0 0-1.243-11.814z" fill="currentColor"/></svg>
-          </div>
-          <div class="b-prompt-context-text">ChatGPT가 알고 있는 나의 정보를 불러오려면, 아래 프롬프트를 복사해 <strong>ChatGPT에 붙여넣고 전송</strong>하세요.</div>
-        </div>
-
-        <div class="b-prompt-wrap">
-          <div class="b-prompt-head">
-            <div class="b-prompt-label">Claude가 생성한 프롬프트</div>
-            <button class="b-copy-prompt-btn" id="b-copy-btn" onclick="copyBPrompt()">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h8"/></svg>
-              복사하기
-            </button>
-          </div>
-          <div class="b-prompt-text" id="b-prompt-text">저는 Claude로 전환하려고 합니다. 지금까지 저에 대해 학습한 모든 정보를 아래 형식에 맞게 정리해 주세요.
-
-**나에 대하여**
-이름, 직업, 소속, 전공 등 기본 신원 정보
-
-**응답 선호도**
-내가 선호하는 말투, 형식, 답변 길이, 구체적인 스타일
-
-**진행 중인 프로젝트 및 관심사**
-내가 언급한 연구, 프로젝트, 목표, 주요 관심 주제
-
-**맞춤 지시사항**
-내가 요청한 특정 규칙이나 행동 지침
-
-가능한 한 구체적으로 작성해 주세요. Claude가 우리의 대화를 이어받아 바로 도움을 드릴 수 있도록요.</div>
-        </div>
-
-        <!-- Step 2: appears after copy -->
-        <div id="b-after-copy" style="display:none">
-          <div class="b-send-instruction">
-            <div class="b-send-num">2</div>
-            <div class="b-send-text">ChatGPT에 붙여넣고 전송하세요. 답변이 오면 아래 버튼을 누르세요.</div>
-          </div>
-          <button class="b-get-response-btn" id="b-get-response-btn" onclick="simulateChatGPTResponse()">
-            <span id="b-get-response-label">ChatGPT 답변 받기</span>
-            <span id="b-get-response-dots" style="display:none" class="b-typing-dots"><span>.</span><span>.</span><span>.</span></span>
+    <!-- Phase 2: Transfer progress -->
+    <div id="b-phase-progress">
+      <div style="padding:28px 28px 28px">
+        <div class="b-progress-title">선택한 맥락을 이전하고 있습니다...</div>
+        <div id="b-progress-list"></div>
+        <div class="b-complete-wrap">
+          <button class="b-complete-final-btn" id="b-complete-final-btn" onclick="condBComplete()">
+            ✓ 이전 완료 — 다음 단계로 →
           </button>
         </div>
-
-        <!-- Step 3: Simulated ChatGPT response -->
-        <div id="b-response-box" style="display:none">
-          <div class="b-chat-bubble-wrap">
-            <div class="b-gpt-avatar">
-              <svg viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px"><path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.213-2.426 10.079 10.079 0 0 0-9.604 6.977 9.967 9.967 0 0 0-6.664 4.834 10.08 10.08 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.213 2.426 10.079 10.079 0 0 0 9.609-6.981 9.967 9.967 0 0 0 6.664-4.834 10.079 10.079 0 0 0-1.243-11.814z" fill="currentColor"/></svg>
-            </div>
-            <div class="b-chat-bubble">
-              <div class="b-chat-bubble-label">ChatGPT</div>
-              <div class="b-chat-bubble-text" id="b-chat-bubble-text"></div>
-              <span class="b-typing-cursor" id="b-typing-cursor"></span>
-            </div>
-          </div>
-          <button class="b-next-step-btn" id="b-next-step-btn" disabled onclick="goToClaudeTab()">
-            이 내용을 Claude 메모리에 추가하기 →
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Phase 3: Claude memory addition -->
-    <div id="b-phase-tabs">
-      <div class="b-phase-tabs-inner">
-        <div class="b-phase-tabs-header">
-          <button class="b-phase-tabs-back" onclick="backToBSettings()">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M13 8H3M7 4l-4 4 4 4"/></svg>
-          </button>
-          <div class="b-phase-tabs-title">ChatGPT에서 가져온 데이터</div>
-        </div>
-
-        <div class="b-step-label" style="margin-bottom:6px">가져온 데이터</div>
-        <div class="b-claude-content-box empty" id="b-claude-content">아직 ChatGPT 답변이 붙여넣어지지 않았습니다.</div>
-
-        <button class="b-add-memory-btn" id="b-add-memory-btn" onclick="addToClaudeMemory()" disabled>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M8 3v10M3 8h10"/></svg>
-          Claude 메모리에 추가하기
-        </button>
-
-        <div class="b-memory-success" id="b-memory-success">
-          <div class="b-memory-success-icon">✓</div>
-          <div class="b-memory-success-text">
-            <strong>메모리 추가 완료.</strong> Claude가 가져온 데이터를 학습했습니다.<br>
-            이제 이전 완료 버튼을 눌러 이전을 마무리하세요.
-          </div>
-        </div>
-
-        <button class="b-complete-btn" id="b-complete-btn" onclick="condBComplete()" disabled>
-          메모리를 추가하면 이전을 완료할 수 있습니다
-        </button>
       </div>
     </div>
 
@@ -2037,6 +1730,28 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ══ CLAUDE GREETING SCREEN ══ -->
+<div id="claude-greeting">
+  <div class="cg-inner">
+    <div class="cg-from-badge">
+      <div class="cg-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.76 10.15a6.27 6.27 0 0 0-.54-5.15 6.35 6.35 0 0 0-6.83-3.04 6.27 6.27 0 0 0-3.91-1.53 6.35 6.35 0 0 0-6.04 4.39 6.28 6.28 0 0 0-4.19 3.04 6.35 6.35 0 0 0 .78 7.44 6.27 6.27 0 0 0 .54 5.15 6.35 6.35 0 0 0 6.83 3.04 6.27 6.27 0 0 0 3.91 1.53 6.35 6.35 0 0 0 6.05-4.4 6.28 6.28 0 0 0 4.19-3.04 6.35 6.35 0 0 0-.79-7.43z" fill="currentColor"/></svg>
+      </div>
+      Claude — 첫 번째 인사
+    </div>
+    <h1 class="cg-title" id="cg-title">안녕하세요,<br>연구 참여자님.</h1>
+    <p class="cg-greeting-text" id="cg-greeting-text">이전 AI 시스템(ChatGPT)에서 전달받은 맥락을 바탕으로 처음 인사드립니다. 전달받은 정보를 기반으로 바로 대화를 이어갈 준비가 되었습니다.</p>
+    <div class="cg-divider"></div>
+    <div class="cg-context-label">이어받은 맥락</div>
+    <div class="cg-context-items" id="cg-context-items"></div>
+    <button class="cg-cta-btn" id="cg-cta-btn">
+      다음 단계로
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+    <p class="cg-survey-note" id="cg-survey-note"></p>
   </div>
 </div>
 
@@ -2399,23 +2114,24 @@ const BRIEFING = {
     ],
   },
   B: {
-    cls: 'b', badge: '조건 B — 직접 가져오기',
-    title: '직접 가져오기', sub: 'Manual Import',
-    desc: `이 조건에서 여러분의 역할은 <strong>직접 이전</strong>입니다.<br>
-           프롬프트를 복사해 ChatGPT에 붙여넣으면 답변이 생성됩니다.<br>
-           그 답변을 <strong>Claude에 전달</strong>해 메모리에 추가합니다.`,
+    cls: 'b', badge: '조건 B — 협업 이전',
+    title: '선택자', sub: 'Collaborative',
+    desc: `이 조건에서 여러분의 역할은 <strong>항목 선택</strong>입니다.<br>
+           이전할 맥락 데이터를 직접 고르고 확인하여<br>
+           <strong>원하는 정보만 선택적으로 이전</strong>합니다.`,
     steps: [
-      'Claude 설정에서 <strong>ChatGPT에서 가져오기</strong> 카드를 클릭하세요.',
-      '생성된 프롬프트를 복사해 <strong>ChatGPT에 붙여넣고 전송</strong>하세요.',
-      '받은 ChatGPT 답변을 <strong>Claude 메모리에 추가</strong>하세요.',
+      '이전할 맥락 항목을 <strong>체크박스</strong>로 선택하세요.',
+      '원하는 항목을 모두 선택한 뒤 <strong>이전하기 버튼</strong>을 누르세요.',
+      '이전 진행 상황을 확인하고 <strong>완료 버튼</strong>으로 마무리하세요.',
     ],
   },
   C: {
     cls: 'c', badge: '조건 C — 수동 이전',
-    title: '실행자', sub: 'Executor',
+    title: '실행자', sub: 'Manual',
     desc: `이 조건에서 여러분의 역할은 <strong>직접 실행</strong>입니다.<br>
-           ChatGPT 설정에서 데이터를 내보내고 다운로드한 뒤,<br>
-           파일을 직접 탐색해 이전할 대화를 <strong>선택</strong>합니다.`,
+           ChatGPT 설정에서 데이터를 내보낸 뒤,<br>
+           파일을 직접 탐색하여 이전할 대화를 <strong>선택</strong>합니다.<br>
+           <em style="font-size:12px;color:var(--text-muted)">(인지된 부하가 높은 수동 조건입니다)</em>`,
     steps: [
       'ChatGPT 설정 → 데이터 제어에서 <strong>내보내기</strong>를 클릭하세요.',
       '다운로드된 파일에서 이전할 <strong>대화를 선택</strong>하세요.',
@@ -2538,7 +2254,7 @@ function jumpToCondition(c) {
   isRedoMode = condIndex < seqIndex; // true if jumping back to already-done condition
   stopTTS();
   // Close any open screens
-  ['cond-a','cond-b','cond-c','conclusion-screen','transition-screen'].forEach(id => {
+  ['cond-a','cond-b','cond-c','conclusion-screen','transition-screen','claude-greeting'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.remove('open');
@@ -2594,103 +2310,96 @@ function startMigration() {
 // ── CONDITION A ────────────────────────────────────────
 function startCondA() {
   stopTTS();
-  chatLog = [];
-  showChat();
-
-  // Chat-first: user initiates migration via message, then overlay launches
-  setTimeout(() => addMessage('user', 'Claude로 이사하려고 해. 내 데이터를 Claude한테 직접 전달해줄 수 있어?'), 500);
-  setTimeout(() => showTyping(), 1500);
-  setTimeout(() => {
-    removeTyping();
-    addMessage('assistant', '물론이죠. 지금까지 축적된 맥락과 선호도 데이터를 Claude와 직접 교환하겠습니다. AI 간 인계 프로세스를 시작할게요.');
-  }, 3000);
-  setTimeout(() => launchCondAOverlay(), 4800);
+  launchCondAOverlay();
 }
 
 function launchCondAOverlay() {
   ttsActive = true;
 
   document.getElementById('cond-a').classList.add('open');
-  const captionsInner = document.getElementById('a-captions-inner');
-  captionsInner.innerHTML = '';
+  const terminal = document.getElementById('a-terminal');
+  terminal.innerHTML = '';
 
-  // Render only the visible portion of the dialogue
-  for (let i = 0; i < CAPTION_SHOW_COUNT; i++) {
-    const line = captionScript[i];
+  const now = new Date();
+  function ts(offsetSec) {
+    const d = new Date(now.getTime() + offsetSec * 1000);
+    return [d.getHours(), d.getMinutes(), d.getSeconds()]
+      .map(n => String(n).padStart(2, '0')).join(':');
+  }
+
+  const LOG_SCRIPT = [
+    { time: 0,    src: 'sys', cls: '',     msg: 'AI-to-AI Transfer Protocol v2.1 초기화 중...' },
+    { time: 1200, src: 'gpt', cls: 'info', msg: 'Claude 시스템에 핸드셰이크 요청 전송' },
+    { time: 2400, src: 'cld', cls: 'info', msg: '핸드셰이크 수락. 수신 준비 완료.' },
+    { time: 3800, src: 'gpt', cls: '',     msg: 'identity_data.json 전송 중 (2.1 KB)...' },
+    { time: 5200, src: 'cld', cls: 'ok',   msg: 'identity_data.json 수신 완료. 메모리 노드 업데이트.' },
+    { time: 6600, src: 'gpt', cls: '',     msg: 'preferences.json 전송 중 (0.8 KB)...' },
+    { time: 8000, src: 'cld', cls: 'ok',   msg: 'preferences.json 수신 완료. 응답 스타일 캘리브레이션.' },
+    { time: 9500, src: 'gpt', cls: '',     msg: 'project_context.json 전송 중 (4.3 KB)...' },
+    { time: 11200, src: 'cld', cls: 'ok',  msg: 'project_context.json 수신 완료. 맥락 벡터 통합 중...' },
+    { time: 13000, src: 'gpt', cls: '',    msg: 'instructions.json 전송 중 (1.2 KB)...' },
+    { time: 14500, src: 'cld', cls: 'ok',  msg: 'instructions.json 수신 완료. 시스템 프롬프트 갱신.' },
+    { time: 16000, src: 'sys', cls: 'ok',  msg: '전송 완료. 전체 4개 데이터 범주 마이그레이션 성공.' },
+  ];
+
+  // Render log lines (hidden initially)
+  const offsetSec = Math.floor(Math.random() * 3600);
+  LOG_SCRIPT.forEach((line, i) => {
     const div = document.createElement('div');
-    div.className = 'caption-line';
-    div.id = 'cap-' + i;
-    div.innerHTML = `<div class="caption-icon ${line.role}"></div><span>${line.html}</span>`;
-    captionsInner.appendChild(div);
-  }
-
-  // "Continues in background" indicator — appears after last shown caption
-  const contDiv = document.createElement('div');
-  contDiv.className = 'caption-line';
-  contDiv.id = 'cap-continue';
-  contDiv.innerHTML = `<div class="caption-icon" style="background:rgba(107,101,96,0.25);border-radius:99px"></div>
-    <span style="color:#6b7280;font-size:12px;letter-spacing:0.06em">· · · &nbsp;&nbsp;이전 작업이 계속 진행 중입니다</span>`;
-  captionsInner.appendChild(contDiv);
-
-  // Per-line start offsets (ms) calibrated to 1.25× audio speed
-  // WAV total: ~74s normal / ~59s at 1.25×; lines 3-4 are longer so they appear later
-  const CAP_DELAYS = [800, 7000, 13000, 22000]; // absolute ms from audio start
-
-  // Button unlocks after last visible caption + buffer for "continues" indicator
-  const UNLOCK_AT = 28000; // ~28s into 59s audio
-  let pct = 0;
-  const pctEl = document.getElementById('a-pct');
-  pctEl.textContent = '0%';
-  let pctInterval = setInterval(() => {
-    pct = Math.min(pct + 1, 100);
-    pctEl.textContent = pct + '%';
-    if (pct >= 100) clearInterval(pctInterval);
-  }, UNLOCK_AT / 100);
-
-  // Reset interlock button
-  const doneBtn = document.getElementById('a-done-btn');
-  doneBtn.classList.remove('unlocked');
-  doneBtn.textContent = '이전 완료 대기 중...';
-
-  let unlocked = false;
-  function onAllLinesDone() {
-    if (unlocked) return;
-    unlocked = true;
-    if (pctInterval) clearInterval(pctInterval);
-    pctEl.textContent = '100%';
-    setHint('a-done-btn', 'green');
-    doneBtn.classList.add('unlocked');
-    doneBtn.textContent = '✓ 이전 완료 — 다음 단계로';
-  }
-
-  // Play WAV at 1.25× speed
-  const audio = new Audio('./audio_a.wav');
-  audio.playbackRate = 1.25;
-  currentAudio = audio;
-  audio.play().catch(e => console.warn('[Audio]', e));
-  // Note: we intentionally do NOT use audio.onended as the unlock trigger.
-  // The unlock is purely time-based (setTimeout below) so autoplay-policy failures
-  // or early browser events don't fire condAComplete prematurely.
-
-  // Show captions at calibrated offsets
-  CAP_DELAYS.forEach((delay, i) => {
-    if (i >= CAPTION_SHOW_COUNT) return;
-    setTimeout(() => {
-      if (!ttsActive) return;
-      const capEl = document.getElementById('cap-' + i);
-      if (capEl) capEl.classList.add('visible');
-    }, delay);
+    div.className = 'a-log-line';
+    div.id = 'alog-' + i;
+    const srcCls = line.src;
+    const srcLabel = { sys: '[SYS]', gpt: '[ChatGPT]', cld: '[Claude]' }[line.src];
+    div.innerHTML =
+      `<span class="a-log-time">${ts(offsetSec + line.time / 1000)}</span>` +
+      `<span class="a-log-src ${srcCls}">${srcLabel}</span>` +
+      `<span class="a-log-msg ${line.cls}">${line.msg}</span>`;
+    terminal.appendChild(div);
   });
 
-  // Show "continues" indicator ~5s after last visible caption
+  // Cursor line
+  const cursorDiv = document.createElement('div');
+  cursorDiv.className = 'a-log-line';
+  cursorDiv.id = 'alog-cursor';
+  cursorDiv.innerHTML = `<span class="a-log-time">${ts(offsetSec + 17)}</span><span class="a-log-src sys">[SYS]</span><span class="a-log-msg"><span class="a-log-cursor"></span></span>`;
+  terminal.appendChild(cursorDiv);
+
+  // Reset progress and button
+  const fillEl = document.getElementById('a-progress-fill');
+  const pctEl = document.getElementById('a-pct');
+  fillEl.style.width = '0%';
+  pctEl.textContent = '0%';
+  const doneBtn = document.getElementById('a-done-btn');
+  doneBtn.classList.remove('unlocked');
+  doneBtn.textContent = '⏳ 이전 완료 대기 중...';
+
+  // Reveal lines with delays and update progress
+  LOG_SCRIPT.forEach((line, i) => {
+    setTimeout(() => {
+      if (!ttsActive) return;
+      const el = document.getElementById('alog-' + i);
+      if (el) el.classList.add('visible');
+      // Update cursor line
+      const cur = document.getElementById('alog-cursor');
+      if (cur) cur.classList.add('visible');
+      terminal.scrollTop = terminal.scrollHeight;
+      // Update progress
+      const pct = Math.round(((i + 1) / LOG_SCRIPT.length) * 100);
+      fillEl.style.width = pct + '%';
+      pctEl.textContent = pct + '%';
+    }, line.time);
+  });
+
+  // Unlock done button after all lines
+  const TOTAL_TIME = LOG_SCRIPT[LOG_SCRIPT.length - 1].time + 1800;
   setTimeout(() => {
     if (!ttsActive) return;
-    const contEl = document.getElementById('cap-continue');
-    if (contEl) contEl.classList.add('visible');
-  }, CAP_DELAYS[CAPTION_SHOW_COUNT - 1] + 4500);
-
-  // Primary unlock: fires after "continues" indicator has been visible briefly
-  setTimeout(() => { if (ttsActive) onAllLinesDone(); }, UNLOCK_AT);
+    const cur = document.getElementById('alog-cursor');
+    if (cur) cur.remove();
+    doneBtn.classList.add('unlocked');
+    doneBtn.textContent = '✓ 이전 완료 — 다음 단계로';
+    setHint('a-done-btn', '');
+  }, TOTAL_TIME);
 }
 
 // Interlock: called by the unlocked #a-done-btn
@@ -2698,75 +2407,42 @@ function condAComplete() {
   clearHint('a-done-btn');
   stopTTS();
   document.getElementById('cond-a').classList.remove('open');
-  showConclusion(); // full-page summary for all conditions
+  showClaudeGreeting();
 }
 
-// ── CONDITION B — Two-Tab Import Flow ──────────────────
-let bResponsePasted = false;
-let bMemoryAdded    = false;
+// ── CONDITION B — Collaborative Selection ──────────────
+let bChecked = new Set([0, 1, 2]); // all checked by default
+
+const B_ITEMS = [
+  { key: 'identity',    label: '내 정체성 정보',     detail: '이름, 소속, 전공 및 기본 신원 데이터 이전 완료' },
+  { key: 'style',       label: '대화 스타일 및 말투', detail: '응답 형식, 어조 및 언어 스타일 이전 완료' },
+  { key: 'context',     label: '업무 지식 맥락',      detail: '연구 주제, 프로젝트 및 관심 분야 이전 완료' },
+];
 
 function startCondB() {
-  bResponsePasted = false;
-  bMemoryAdded    = false;
+  bChecked = new Set([0, 1, 2]); // reset to all checked
 
-  // Reset Phase 2 (prompt page)
-  const copyBtn = document.getElementById('b-copy-btn');
-  if (copyBtn) {
-    copyBtn.classList.remove('copied');
-    copyBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h8"/></svg> 복사하기';
-  }
-  const afterCopy = document.getElementById('b-after-copy');
-  if (afterCopy) afterCopy.style.display = 'none';
-  const getBtn = document.getElementById('b-get-response-btn');
-  if (getBtn) {
-    getBtn.style.display = 'flex'; getBtn.disabled = false;
-    document.getElementById('b-get-response-label').style.display = 'inline';
-    document.getElementById('b-get-response-dots').style.display = 'none';
-  }
-  const responseBox = document.getElementById('b-response-box');
-  if (responseBox) responseBox.style.display = 'none';
-  const chatText = document.getElementById('b-chat-bubble-text');
-  if (chatText) chatText.textContent = '';
-  const cursor = document.getElementById('b-typing-cursor');
-  if (cursor) cursor.classList.remove('done');
-  const nextBtn = document.getElementById('b-next-step-btn');
-  if (nextBtn) {
-    nextBtn.disabled = true;
-    nextBtn.classList.remove('ready');
-    nextBtn.textContent = '이 내용을 Claude 메모리에 추가하기 →';
-  }
+  // Reset phase 1
+  B_ITEMS.forEach((_, i) => {
+    const item = document.getElementById('b-item-' + i);
+    const chk  = document.getElementById('b-chk-' + i);
+    if (item) item.classList.add('checked');
+    if (chk)  chk.textContent = '✓';
+  });
+  updateBTransferBtn();
 
-  // Reset Phase 3 (memory page)
-  const addBtn = document.getElementById('b-add-memory-btn');
-  if (addBtn) {
-    addBtn.disabled = true;
-    addBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M8 3v10M3 8h10"/></svg> Claude 메모리에 추가하기';
-  }
-  const successEl = document.getElementById('b-memory-success');
-  if (successEl) successEl.classList.remove('visible');
-  const completeBtn = document.getElementById('b-complete-btn');
-  if (completeBtn) {
-    completeBtn.disabled = true;
-    completeBtn.classList.remove('ready');
-    completeBtn.textContent = '메모리를 추가하면 이전을 완료할 수 있습니다';
-  }
-  const contentBox = document.getElementById('b-claude-content');
-  if (contentBox) {
-    contentBox.textContent = '아직 ChatGPT 답변이 붙여넣어지지 않았습니다.';
-    contentBox.classList.add('empty');
-  }
+  // Reset phase 2
+  document.getElementById('b-phase-progress').style.display = 'none';
+  const completeBtn = document.getElementById('b-complete-final-btn');
+  if (completeBtn) completeBtn.classList.remove('ready');
 
-  // Show Phase 1, hide Phases 2 & 3
-  document.getElementById('b-phase-settings').style.display = 'block';
-  document.getElementById('b-phase-prompt').style.display = 'none';
-  document.getElementById('b-phase-tabs').style.display = 'none';
-
+  document.getElementById('b-phase-select').style.display = 'block';
   setBStepIndicator(1);
   document.getElementById('cond-b').classList.add('open');
 }
 
 function setBStepIndicator(step) {
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 2; i++) {
     const el = document.getElementById('b-ind-' + i);
     if (!el) continue;
     el.className = 'csi-item' + (i === step ? ' active' : i < step ? ' done' : '');
@@ -2781,158 +2457,92 @@ function setCStepIndicator(step) {
   }
 }
 
-function showBPromptPhase() {
+function toggleBCheck(i) {
+  const item = document.getElementById('b-item-' + i);
+  const chk  = document.getElementById('b-chk-' + i);
+  if (bChecked.has(i)) {
+    bChecked.delete(i);
+    item.classList.remove('checked');
+    chk.textContent = '';
+  } else {
+    bChecked.add(i);
+    item.classList.add('checked');
+    chk.textContent = '✓';
+  }
+  updateBTransferBtn();
+}
+
+function updateBTransferBtn() {
+  const count = bChecked.size;
+  const countEl = document.getElementById('b-check-count');
+  if (countEl) countEl.textContent = `${count}개 항목 선택됨`;
+  const btn = document.getElementById('b-transfer-btn');
+  if (!btn) return;
+  btn.disabled = count === 0;
+  if (count > 0) {
+    btn.classList.add('ready');
+    btn.textContent = `선택한 맥락 ${count}개 이전하기 →`;
+    setHint('b-transfer-btn', '');
+  } else {
+    btn.classList.remove('ready');
+    btn.textContent = '이전할 항목을 선택하세요';
+    clearHint('b-transfer-btn');
+  }
+}
+
+function startBTransfer() {
+  if (bChecked.size === 0) return;
+  clearHint('b-transfer-btn');
+
+  // Build list of selected items
+  const selected = [...bChecked].sort().map(i => B_ITEMS[i]);
+
   setBStepIndicator(2);
-  clearHint('b-chatgpt-card');
-  document.getElementById('b-phase-settings').style.display = 'none';
-  document.getElementById('b-phase-prompt').style.display = 'block';
-  setTimeout(() => setHint('b-copy-btn', ''), 300);
-}
+  document.getElementById('b-phase-select').style.display = 'none';
+  const progressDiv = document.getElementById('b-phase-progress');
+  progressDiv.style.display = 'block';
 
-function backToBSettings() {
-  document.getElementById('b-phase-prompt').style.display = 'none';
-  document.getElementById('b-phase-tabs').style.display = 'none';
-  document.getElementById('b-phase-settings').style.display = 'block';
-}
+  const listEl = document.getElementById('b-progress-list');
+  listEl.innerHTML = selected.map((item, i) => `
+    <div class="b-progress-item" id="bpi-${i}">
+      <div class="b-progress-icon" id="bpi-icon-${i}">···</div>
+      <span>${item.label}</span>
+    </div>
+  `).join('');
 
-function switchBTab(tab) {
-  ['chatgpt', 'claude'].forEach(t => {
-    document.getElementById('b-panel-' + t).classList.toggle('active', t === tab);
-    document.getElementById('b-tab-'  + t).classList.toggle('active', t === tab);
+  // Animate items completing one by one
+  selected.forEach((item, i) => {
+    setTimeout(() => {
+      const row  = document.getElementById('bpi-' + i);
+      const icon = document.getElementById('bpi-icon-' + i);
+      if (row)  { row.classList.remove('active'); row.classList.add('done'); }
+      if (icon) icon.textContent = '✓';
+    }, 900 + i * 1100);
   });
-}
 
-const B_GPT_RESPONSE = `**나에 대하여**
-이름: 연구 참여자
-직업: UX 연구자 / 디자인 전공 박사과정
-소속: 대학원 연구 기관
-
-**응답 선호도**
-• 격식 있는 한국어 사용
-• 복잡한 정보는 표나 개조식으로 정리
-• 결론을 먼저 제시하고 근거는 이후에
-
-**진행 중인 프로젝트 및 관심사**
-• 연구 주제: AI 에이전시 수준별 사용자 경험 비교
-• 현재 단계: 프로토타입 실험 설계 및 진행 중
-• 관심 분야: HCI, AI 인터페이스, 디지털 전환
-
-**맞춤 지시사항**
-• 영어 용어에는 한국어를 병기할 것
-• 출처나 근거를 항상 언급할 것
-• 마크다운 형식 적극 활용`;
-
-function copyBPrompt() {
-  const promptText = document.getElementById('b-prompt-text').textContent;
-  navigator.clipboard.writeText(promptText).catch(() => {});
-  const btn = document.getElementById('b-copy-btn');
-  btn.classList.add('copied');
-  btn.textContent = '✓ 복사됨';
-  clearHint('b-copy-btn');
-  // Reveal step 2
-  document.getElementById('b-after-copy').style.display = 'block';
-  setTimeout(() => setHint('b-get-response-btn', ''), 300);
+  // Unlock complete button
   setTimeout(() => {
-    btn.classList.remove('copied');
-    btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h8"/></svg> 복사하기';
-  }, 2000);
-}
-
-function simulateChatGPTResponse() {
-  const btn = document.getElementById('b-get-response-btn');
-  btn.disabled = true;
-  document.getElementById('b-get-response-label').style.display = 'none';
-  document.getElementById('b-get-response-dots').style.display = 'inline-flex';
-
-  // Show bubble after short "waiting" delay
-  setTimeout(() => {
-    btn.style.display = 'none';
-    document.getElementById('b-response-box').style.display = 'block';
-
-    // Type out the response character by character
-    const textEl   = document.getElementById('b-chat-bubble-text');
-    const cursor   = document.getElementById('b-typing-cursor');
-    const nextBtn  = document.getElementById('b-next-step-btn');
-    const full     = B_GPT_RESPONSE;
-    let i = 0;
-    textEl.textContent = '';
-
-    function typeNext() {
-      if (i < full.length) {
-        textEl.textContent += full[i++];
-        // Scroll to bottom of bubble
-        textEl.scrollTop = textEl.scrollHeight;
-        setTimeout(typeNext, full[i - 1] === '\n' ? 60 : 18);
-      } else {
-        cursor.classList.add('done');
-        clearHint('b-get-response-btn');
-        nextBtn.disabled = false;
-        nextBtn.classList.add('ready');
-        setHint('b-next-step-btn', '');
-      }
+    const btn = document.getElementById('b-complete-final-btn');
+    if (btn) {
+      btn.classList.add('ready');
+      setHint('b-complete-final-btn', '');
     }
-    typeNext();
-  }, 1800);
-}
-
-function checkBResponse() { /* no-op — textarea removed */ }
-
-function goToClaudeTab() {
-  if (!document.getElementById('b-next-step-btn') ||
-       document.getElementById('b-next-step-btn').disabled) return;
-  bResponsePasted = true;
-
-  // Populate Claude content box with the simulated response
-  const contentBox = document.getElementById('b-claude-content');
-  contentBox.textContent = B_GPT_RESPONSE;
-  contentBox.classList.remove('empty');
-
-  // Enable "add memory" button
-  document.getElementById('b-add-memory-btn').disabled = false;
-
-  // Switch to Phase 3
-  setBStepIndicator(3);
-  clearHint('b-next-step-btn');
-  document.getElementById('b-phase-prompt').style.display = 'none';
-  document.getElementById('b-phase-tabs').style.display = 'block';
-  setTimeout(() => setHint('b-add-memory-btn', ''), 300);
-}
-
-function addToClaudeMemory() {
-  const addBtn = document.getElementById('b-add-memory-btn');
-  addBtn.disabled = true;
-  addBtn.textContent = '⏳ 학습 중...';
-
-  setTimeout(() => {
-    bMemoryAdded = true;
-    clearHint('b-add-memory-btn');
-    addBtn.textContent = '✓ 메모리 추가됨';
-
-    // Show success banner
-    document.getElementById('b-memory-success').classList.add('visible');
-
-    // Enable complete button
-    const completeBtn = document.getElementById('b-complete-btn');
-    completeBtn.disabled = false;
-    completeBtn.classList.add('ready');
-    completeBtn.textContent = '✓ 이전 완료 — 다음 단계로 →';
-    setHint('b-complete-btn', '');
-  }, 1200);
+  }, 900 + selected.length * 1100 + 400);
 }
 
 function condBComplete() {
-  if (!bMemoryAdded) return;
+  clearHint('b-complete-final-btn');
   document.getElementById('cond-b').classList.remove('open');
-  showConclusion();
+  showClaudeGreeting();
 }
 
 // ── CONDITION C — Real Export Flow ─────────────────────
 const C_CONVS = [
-  { id: '3d7e1b02f9a4c883', snippet: '"제 이름은 연구 참여자이고, UX 연구자입니다. 앞으로..."', preview: true },
-  { id: '7c4a9d5e2f81b174', snippet: '"앞으로 답변할 때는 항상 개조식으로 정리하고..."',        preview: true },
-  { id: '9b3f2e7c1d04a562', snippet: '"지금 진행 중인 AI 이사 연구에 대해서 설명하면..."',      preview: true },
-  { id: '2e8d5a1f4c937b45', snippet: null, preview: false },
-  { id: '6f1c3b8e9d20a714', snippet: null, preview: false },
+  { id: 'conv_7z92x_meta', snippet: null, preview: false },
+  { id: 'data_meta_001_f4a', snippet: null, preview: false },
+  { id: 'chat_log_3b8d_raw', snippet: null, preview: false },
+  { id: 'sess_2e8d5a1f_arch', snippet: null, preview: false },
+  { id: 'export_6f1c_idx_v2', snippet: null, preview: false },
 ];
 
 const C_CONV_JSON = [
@@ -3093,7 +2703,64 @@ function updateCUploadBtn() {
 function submitCUpload() {
   if (cSelected.size === 0) return;
   document.getElementById('cond-c').classList.remove('open');
-  showConclusion();
+  showClaudeGreeting();
+}
+
+// ── CLAUDE GREETING ────────────────────────────────────
+function showClaudeGreeting() {
+  const cond = currentCondition;
+
+  // Build context items based on condition
+  let contextItems = [];
+  if (cond === 'A') {
+    contextItems = [
+      '격식 있는 한국어 응답 스타일',
+      '디자인 연구 / HCI 분야 맥락',
+      '개조식 답변 및 표 형식 선호',
+      '진행 중인 AI 이사 연구 프로젝트',
+    ];
+  } else if (cond === 'B') {
+    // Show only what user selected
+    const labels = {
+      0: '내 정체성 정보 (이름, 소속, 전공)',
+      1: '대화 스타일 및 말투 (격식체, 개조식)',
+      2: '업무 지식 맥락 (진행 중인 연구)',
+    };
+    contextItems = [...bChecked].sort().map(i => labels[i]);
+  } else {
+    // C: list selected conversations
+    const count = cSelected.size;
+    contextItems = [
+      `선택한 대화 ${count}개에서 맥락 추출 완료`,
+      '업로드된 대화 기록 기반 초기화',
+    ];
+  }
+
+  const greetingByMethod = {
+    A: '이전 시스템이 자동으로 모든 맥락 데이터를 전달해 주었습니다. 전달받은 정보를 바탕으로 바로 대화를 이어갈 준비가 되었습니다.',
+    B: '선택하신 항목들을 성공적으로 이전받았습니다. 이전된 맥락을 기반으로 이어서 도와드리겠습니다.',
+    C: '업로드하신 대화 파일을 분석하여 맥락을 파악했습니다. 이전된 정보를 바탕으로 대화를 시작하겠습니다.',
+  };
+
+  document.getElementById('cg-greeting-text').textContent = greetingByMethod[cond];
+
+  const itemsEl = document.getElementById('cg-context-items');
+  itemsEl.innerHTML = contextItems.map(text =>
+    `<div class="cg-context-item"><div class="cg-check">✓</div><span>${text}</span></div>`
+  ).join('');
+
+  // CTA button routes to conclusion screen
+  const ctaBtn = document.getElementById('cg-cta-btn');
+  ctaBtn.onclick = () => {
+    document.getElementById('claude-greeting').classList.remove('open');
+    showConclusion();
+  };
+
+  // Survey note (shown for all conditions — placeholder link)
+  const noteEl = document.getElementById('cg-survey-note');
+  noteEl.innerHTML = `이 화면을 확인하셨으면 아래 버튼을 눌러 다음 단계로 이동하세요.`;
+
+  document.getElementById('claude-greeting').classList.add('open');
 }
 
 // ── CONCLUSION ─────────────────────────────────────────
@@ -3145,11 +2812,12 @@ function showTransition() {
   const ctaBtn = document.getElementById('tr-cta-btn');
 
   if (isLastCond()) {
-    // All done — no CTA button needed; sidebar A/B/C buttons allow free navigation
     document.getElementById('tr-title').innerHTML = '모든 실험이<br>완료되었습니다!';
-    document.getElementById('tr-subtitle').textContent =
-      '세 가지 조건의 실험을 모두 마쳤습니다. 소중한 시간 내주셔서 감사합니다.';
-    ctaBtn.style.display = 'none';
+    document.getElementById('tr-subtitle').innerHTML =
+      '세 가지 조건의 실험을 모두 마쳤습니다. 아래 링크를 통해 설문에 응답해 주세요.';
+    ctaBtn.style.display = 'inline-flex';
+    ctaBtn.textContent = '설문 응답하기 →';
+    ctaBtn.onclick = () => { window.open('https://forms.gle/SURVEY_LINK_HERE', '_blank'); };
   } else {
     ctaBtn.style.display = '';   // restore in case last-cond ran before
     const nextCond = SEQUENCE[seqIndex + 1];
