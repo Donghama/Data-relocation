@@ -780,11 +780,7 @@
     #b-hint-bar.visible { display: flex; }
 
     /* ── AI Chat Simulation (inside B) — neutral light design ── */
-    #b-chatgpt-sim {
-      position: fixed; inset: 0; z-index: 300;
-      display: none; align-items: stretch;
-    }
-    #b-chatgpt-sim.open { display: flex; }
+    #b-chatgpt-sim { display: none !important; }  /* removed — inline flow only */
     .b-gpt-sidebar {
       width: 260px; min-width: 260px; background: var(--g-sidebar-bg);
       display: flex; flex-direction: column; padding: 10px 8px;
@@ -3488,12 +3484,9 @@ function startCondB() {
   const newChatItem = document.getElementById('b-g-new-chat-item');
   if (newChatItem) newChatItem.style.display = 'none';
 
-  // Reset ChatGPT sim
-  document.getElementById('b-chatgpt-sim').classList.remove('open');
-  const msgs = document.getElementById('b-gpt-messages');
-  if (msgs) msgs.innerHTML = '';
-  const pasteBtn = document.getElementById('b-gpt-paste-back-btn');
-  if (pasteBtn) pasteBtn.classList.remove('show');
+  // Reset textarea
+  const ta = document.getElementById('b-g-response-textarea');
+  if (ta) { ta.value = ''; ta.disabled = false; ta.placeholder = '여기에 내용을 붙여넣으세요...'; }
 
   setBStepIndicator(1);
   document.getElementById('cond-b').classList.add('open');
@@ -3580,114 +3573,61 @@ function copyBGPrompt() {
     btn.textContent = '📋 복사';
   }, 2000);
 
-  // Show hint to go to ChatGPT
-  const hintBar = document.getElementById('b-hint-bar');
-  const hintText = document.getElementById('b-hint-text');
-  if (hintBar && hintText) {
-    hintText.textContent = '아래 "AI 채팅으로 이동" 버튼을 눌러 시뮬레이션을 진행하세요';
-    hintBar.classList.add('visible');
-  }
-
-  // Show a "go to ChatGPT" button after copy
+  // Step 2 row 보이게 (처음에 숨어있다면)
   const step2 = document.getElementById('b-g-step2-row');
-  if (step2 && !document.getElementById('b-g-go-chatgpt-btn')) {
-    const goBtn = document.createElement('button');
-    goBtn.id = 'b-g-go-chatgpt-btn';
-    goBtn.style.cssText = 'margin-top:12px;padding:9px 20px;border-radius:8px;border:none;background:#1a73e8;color:#fff;font-size:13.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity 0.15s;';
-    goBtn.textContent = 'AI 채팅으로 이동 →';
-    goBtn.onclick = showBChatGPTSim;
-    document.getElementById('b-import-memory-page').insertBefore(goBtn, step2);
-    setHint('b-g-go-chatgpt-btn', '');
-  }
-}
+  if (step2) step2.style.display = '';
 
-function showBChatGPTSim() {
-  clearHint('b-g-go-chatgpt-btn');
-  const hintBar = document.getElementById('b-hint-bar');
-  if (hintBar) hintBar.classList.remove('visible');
-
-  const sim = document.getElementById('b-chatgpt-sim');
-  sim.classList.add('open');
-
-  const msgs = document.getElementById('b-gpt-messages');
-  msgs.innerHTML = '';
-
-  // Show user message (the prompt)
-  const userMsg = document.createElement('div');
-  userMsg.className = 'b-gpt-user-msg';
-  userMsg.textContent = 'You are helping me import context from one AI assistant to another...';
-  msgs.appendChild(userMsg);
-
-  // Show typing dots
-  const assistantRow = document.createElement('div');
-  assistantRow.className = 'b-gpt-assistant-msg';
-  assistantRow.id = 'b-gpt-typing-row';
-  assistantRow.innerHTML = `
-    <div class="b-gpt-assist-avatar">✦</div>
-    <div class="b-gpt-typing-dots"><span></span><span></span><span></span></div>
-  `;
-  msgs.appendChild(assistantRow);
-  msgs.scrollTop = msgs.scrollHeight;
-
+  // 잠깐 후 textarea에 답변 자동 타이핑 시작
   setTimeout(() => {
-    // Replace typing with response
-    msgs.removeChild(assistantRow);
-
-    const assistRow2 = document.createElement('div');
-    assistRow2.className = 'b-gpt-assistant-msg';
-    const avatar = document.createElement('div');
-    avatar.className = 'b-gpt-assist-avatar';
-    avatar.textContent = '✦';
-    const bubble = document.createElement('div');
-    bubble.className = 'b-gpt-assist-bubble';
-    bubble.id = 'b-gpt-bubble-text';
-    bubble.textContent = '';
-    assistRow2.appendChild(avatar);
-    assistRow2.appendChild(bubble);
-    msgs.appendChild(assistRow2);
-
-    // Type out the response
-    const full = B_GPT_RESPONSE;
-    let i = 0;
-    function typeNext() {
-      if (i < full.length) {
-        bubble.textContent += full[i++];
-        bubble.scrollTop = bubble.scrollHeight;
-        setTimeout(typeNext, full[i-1] === '\n' ? 40 : 12);
-      } else {
-        // Show paste back button
-        const pasteBtn = document.getElementById('b-gpt-paste-back-btn');
-        pasteBtn.classList.add('show');
-        msgs.scrollTop = msgs.scrollHeight;
-      }
+    const hintBar = document.getElementById('b-hint-bar');
+    const hintText = document.getElementById('b-hint-text');
+    if (hintBar && hintText) {
+      hintText.textContent = '다른 AI에서 받은 답변이 자동으로 붙여넣어집니다...';
+      hintBar.classList.add('visible');
     }
-    typeNext();
-  }, 1800);
+    autoTypeIntoTextarea();
+  }, 800);
 }
 
-function returnToGeminiWithResponse() {
-  document.getElementById('b-chatgpt-sim').classList.remove('open');
-  bResponsePasted = true;
-
-  // Pre-fill the textarea with the response
+function autoTypeIntoTextarea() {
   const ta = document.getElementById('b-g-response-textarea');
-  if (ta) ta.value = B_GPT_RESPONSE;
-
-  // Enable add memory button
   const addBtn = document.getElementById('b-g-add-memory-btn');
-  if (addBtn) addBtn.disabled = false;
+  if (!ta) return;
 
-  setBStepIndicator(3);
+  ta.value = '';
+  ta.disabled = true;
+  ta.placeholder = '답변을 불러오는 중...';
 
-  const hintBar = document.getElementById('b-hint-bar');
-  const hintText = document.getElementById('b-hint-text');
-  if (hintBar && hintText) {
-    hintText.textContent = '"+ 메모리 추가" 버튼을 클릭하세요';
-    hintBar.classList.add('visible');
+  const full = B_GPT_RESPONSE;
+  let i = 0;
+
+  function typeNext() {
+    if (i < full.length) {
+      ta.value += full[i++];
+      ta.scrollTop = ta.scrollHeight;
+      setTimeout(typeNext, full[i-1] === '\n' ? 30 : 8);
+    } else {
+      // 타이핑 완료
+      ta.disabled = false;
+      ta.placeholder = '여기에 내용을 붙여넣으세요...';
+      bResponsePasted = true;
+      if (addBtn) addBtn.disabled = false;
+      setBStepIndicator(3);
+
+      const hintBar = document.getElementById('b-hint-bar');
+      const hintText = document.getElementById('b-hint-text');
+      if (hintBar && hintText) {
+        hintText.textContent = '"+ 메모리 추가" 버튼을 클릭하세요';
+        hintBar.classList.add('visible');
+      }
+      setTimeout(() => setHint('b-g-add-memory-btn', ''), 200);
+    }
   }
-
-  setTimeout(() => setHint('b-g-add-memory-btn', ''), 300);
+  typeNext();
 }
+
+function showBChatGPTSim() { /* no-op — inline flow only */ }
+function returnToGeminiWithResponse() { /* no-op — inline flow only */ }
 
 function onBGTextareaInput() {
   const ta = document.getElementById('b-g-response-textarea');
