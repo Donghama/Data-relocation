@@ -1,0 +1,4352 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatGPT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --sidebar-bg: #EDE9E3;
+      --main-bg: #F5F3EE;
+      --input-bg: #FFFFFF;
+      --border: #D8D3CC;
+      --text-primary: #1C1917;
+      --text-secondary: #6B6560;
+      --text-muted: #A09990;
+      --hover-bg: #E5E0D9;
+      --active-bg: #DDD8D1;
+      --accent: #D97757;
+      --send-btn: #1C1917;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: var(--main-bg);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      padding: 8px;
+      transition: width 0.2s ease;
+      overflow: hidden;
+    }
+    #sidebar.collapsed { width: 0; min-width: 0; padding: 0; border-right: none; }
+
+    .sidebar-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 2px 2px 4px;
+      margin-bottom: 4px;
+    }
+    .sidebar-logo {
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sidebar-logo svg { width: 20px; height: 20px; }
+    .sidebar-icon-btn {
+      background: none; border: none; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary);
+      transition: background 0.15s;
+    }
+    .sidebar-icon-btn:hover { background: var(--hover-bg); }
+    .sidebar-icon-btn svg { width: 18px; height: 18px; }
+
+    .sidebar-list-section { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; }
+
+    .sidebar-list-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px; cursor: pointer;
+      color: var(--text-primary); font-size: 13.5px;
+      font-weight: 400; transition: background 0.15s; white-space: nowrap;
+      word-break: keep-all;
+    }
+    .sidebar-list-item:hover { background: var(--hover-bg); }
+    .sidebar-list-item svg { width: 16px; height: 16px; color: var(--text-secondary); flex-shrink: 0; }
+
+    .sidebar-divider { height: 1px; background: var(--border); margin: 6px 4px; }
+
+    .chat-section-label {
+      font-size: 11px; font-weight: 500; color: var(--text-muted);
+      padding: 4px 10px 2px; letter-spacing: 0.02em; text-transform: uppercase;
+    }
+    .chat-list { display: flex; flex-direction: column; gap: 1px; overflow-y: auto; flex: 1; }
+    .chat-item {
+      padding: 7px 10px; border-radius: 8px; cursor: pointer;
+      font-size: 13px; color: var(--text-secondary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: background 0.15s; word-break: keep-all;
+    }
+    .chat-item:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .chat-item.active { background: var(--active-bg); color: var(--text-primary); font-weight: 500; }
+
+    /* ── SEQUENCE PROGRESS ── */
+    .condition-switcher {
+      margin: 8px 4px 4px;
+      padding: 10px 10px 12px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .condition-switcher-label {
+      font-size: 10px; font-weight: 600; color: var(--text-muted);
+      letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px;
+    }
+    .seq-progress { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .seq-step {
+      width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+      font-family: inherit; flex-shrink: 0; transition: all 0.2s;
+    }
+    .seq-step.active { border-color: var(--text-primary); color: var(--text-primary); }
+    .seq-step.done {
+      border-color: var(--text-secondary); color: var(--text-secondary);
+      background: var(--hover-bg);
+    }
+    .seq-divider { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+    .seq-label {
+      font-size: 11px; color: var(--text-secondary); letter-spacing: 0.03em; word-break: keep-all;
+    }
+    .seq-next-btn {
+      width: 100%; margin-top: 8px; padding: 8px 10px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      background: transparent; font-size: 12px; font-weight: 600;
+      color: var(--text-secondary); font-family: inherit; cursor: pointer;
+      display: none; align-items: center; justify-content: center; gap: 4px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .seq-next-btn:hover { border-color: var(--text-primary); color: var(--text-primary); }
+
+    /* ── SIDEBAR BOTTOM ── */
+    .sidebar-bottom {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+    }
+    .user-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .user-row:hover { background: var(--hover-bg); }
+    .user-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1C1917; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; font-weight: 500; flex: 1; word-break: keep-all; }
+    .settings-btn {
+      background: none; border: none; cursor: pointer;
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); transition: background 0.15s;
+    }
+    .settings-btn:hover { background: var(--hover-bg); }
+    .settings-btn svg { width: 15px; height: 15px; }
+
+    /* ── MAIN PANEL ── */
+    #main {
+      flex: 1; display: flex; flex-direction: column;
+      background: var(--main-bg); overflow: hidden; position: relative;
+    }
+
+    /* ── AGENCY BAR ── */
+    #agency-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 16px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .agency-cond-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+      padding: 2px 7px; border-radius: 20px; text-transform: uppercase; flex-shrink: 0;
+    }
+    .agency-cond-tag.a { background: var(--hover-bg); color: var(--text-secondary); }
+    .agency-cond-tag.b { background: var(--hover-bg); color: var(--text-secondary); }
+    .agency-cond-tag.c { background: var(--hover-bg); color: var(--text-secondary); }
+    .agency-bar-name { font-size: 12px; font-weight: 500; color: var(--text-primary); flex-shrink: 0; word-break: keep-all; }
+    .agency-label { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; white-space: nowrap; }
+    .agency-track {
+      flex: 1; height: 6px; background: #e5e7eb; border-radius: 99px; overflow: hidden;
+      min-width: 80px;
+    }
+    .agency-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease, background 0.3s; }
+    .agency-fill.a { background: #1C1917; }
+    .agency-fill.b { background: #1C1917; }
+    .agency-fill.c { background: #1C1917; }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; flex-shrink: 0;
+    }
+    #topbar-left { display: flex; align-items: center; gap: 8px; }
+    #collapse-btn-main {
+      background: none; border: none; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary);
+    }
+    #collapse-btn-main:hover { background: var(--hover-bg); }
+    #collapse-btn-main svg { width: 18px; height: 18px; }
+    .model-selector {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 8px; cursor: pointer;
+      font-size: 14px; font-weight: 600; color: var(--text-primary);
+      transition: background 0.15s; word-break: keep-all;
+    }
+    .model-selector.ui-disabled { pointer-events: none !important; opacity: 0.38 !important; }
+    .model-selector:hover { background: var(--hover-bg); }
+    .model-selector svg { width: 14px; height: 14px; color: var(--text-secondary); }
+
+    /* ── WELCOME SCREEN ── */
+    #welcome-screen {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 24px;
+      padding: 40px 24px;
+    }
+    .welcome-logo {
+      width: 40px; height: 40px;
+    }
+    .welcome-logo svg { width: 40px; height: 40px; }
+    .welcome-title {
+      font-size: 28px; font-weight: 600; color: var(--text-primary);
+      text-align: center; word-break: keep-all;
+    }
+    .welcome-subtitle {
+      font-size: 15px; color: var(--text-secondary);
+      text-align: center; max-width: 400px; word-break: keep-all;
+      margin-bottom: 12px;
+    }
+    .welcome-cond-hint {
+      font-size: 12px; color: var(--text-muted); margin-bottom: 24px; word-break: keep-all;
+    }
+    .welcome-migrate-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px; border-radius: 100px; border: none;
+      font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+      color: #fff; letter-spacing: -0.01em; margin-bottom: 28px;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .welcome-migrate-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .welcome-migrate-btn.a { background: #1C1917; }
+    .welcome-migrate-btn.b { background: #1C1917; }
+    .welcome-migrate-btn.c { background: #1C1917; }
+    .welcome-suggestions {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      justify-content: center; max-width: 520px;
+    }
+    .suggestion-pill {
+      padding: 8px 14px; border: 1px solid var(--border);
+      border-radius: 20px; font-size: 13px; color: var(--text-secondary);
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+      word-break: keep-all;
+    }
+    .suggestion-pill:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .suggestion-pill.ui-disabled { pointer-events: none !important; opacity: 0.38 !important; }
+
+    /* ── CHAT VIEW ── */
+    #chat-view { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+    #chat-messages {
+      flex: 1; overflow-y: auto; padding: 24px 0;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .msg-row { width: 100%; max-width: 680px; padding: 6px 24px; }
+    .msg-bubble { padding: 12px 16px; border-radius: 14px; font-size: 14.5px; line-height: 1.6; word-break: keep-all; }
+    .msg-row.user .msg-bubble { background: var(--input-bg); margin-left: auto; max-width: 75%; border-radius: 18px; }
+    .msg-row.assistant .msg-bubble { background: none; padding-left: 0; }
+    .msg-row.assistant .msg-avatar {
+      width: 26px; height: 26px; border-radius: 50%; background: #000;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 6px; flex-shrink: 0;
+    }
+    .msg-row.assistant .msg-avatar svg { width: 14px; height: 14px; color: #fff; }
+    .typing-dots { display: flex; gap: 4px; padding: 8px 0; }
+    .typing-dots span {
+      width: 7px; height: 7px; background: var(--text-muted);
+      border-radius: 50%; animation: tBounce 1.2s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes tBounce {
+      0%,60%,100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* ── INPUT AREA ── */
+    #input-area {
+      padding: 16px 24px 20px; flex-shrink: 0;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .input-box {
+      width: 100%; max-width: 680px;
+      background: var(--input-bg); border-radius: 16px;
+      border: 1px solid transparent; padding: 12px 14px;
+      display: flex; align-items: flex-end; gap: 8px;
+      transition: border-color 0.15s;
+    }
+    .input-box:focus-within { border-color: #c5c5c5; }
+    #msg-input {
+      flex: 1; background: none; border: none; outline: none;
+      font-size: 15px; font-family: inherit; color: var(--text-primary);
+      resize: none; max-height: 180px; line-height: 1.5;
+      letter-spacing: -0.01em; word-break: keep-all;
+    }
+    #msg-input::placeholder { color: var(--text-muted); }
+    .input-actions { display: flex; align-items: center; gap: 6px; }
+    .input-icon-btn {
+      background: none; border: none; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); transition: background 0.15s;
+    }
+    .input-icon-btn:hover { background: var(--hover-bg); }
+    .input-icon-btn svg { width: 16px; height: 16px; }
+    .input-icon-btn.ui-disabled { pointer-events: none !important; opacity: 0.38 !important; }
+    #send-btn {
+      background: var(--send-btn); border: none; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; transition: opacity 0.15s;
+    }
+    #send-btn:hover { opacity: 0.8; }
+    #send-btn svg { width: 16px; height: 16px; }
+    #send-btn.ui-disabled { pointer-events: none !important; opacity: 0.38 !important; }
+    .input-footer {
+      text-align: center; font-size: 11.5px; color: var(--text-muted);
+      margin-top: 8px; word-break: keep-all;
+    }
+    .input-footer-wrap { max-width: 680px; width: 100%; }
+
+    /* ── SETTINGS MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 1000; display: none; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 14px; width: 620px; max-width: 94vw;
+      max-height: 80vh; overflow: hidden; display: flex;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    }
+    .modal-sidebar {
+      width: 180px; background: var(--sidebar-bg); border-right: 1px solid var(--border);
+      padding: 16px 10px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0;
+    }
+    .modal-nav-item {
+      padding: 8px 12px; border-radius: 8px; cursor: pointer;
+      font-size: 13px; color: var(--text-secondary); transition: background 0.15s;
+      word-break: keep-all;
+    }
+    .modal-nav-item:hover { background: var(--hover-bg); }
+    .modal-nav-item.active { background: var(--active-bg); color: var(--text-primary); font-weight: 500; }
+    .modal-content { flex: 1; padding: 24px; overflow-y: auto; }
+    .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+    .modal-panel { display: none; }
+    .modal-panel.active { display: block; }
+    .setting-row { margin-bottom: 20px; }
+    .setting-label { font-size: 13px; font-weight: 500; margin-bottom: 6px; word-break: keep-all; }
+    .setting-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; word-break: keep-all; }
+    .export-btn {
+      padding: 8px 16px; background: var(--text-primary); color: #fff;
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+    }
+    .export-btn:hover { opacity: 0.85; }
+
+    /* ── CONDITION A OVERLAY ── */
+    #cond-a {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+      z-index: 200; display: none; align-items: center; justify-content: center;
+    }
+    #cond-a.open { display: flex; }
+    .a-modal {
+      background: var(--main-bg); border-radius: 16px; width: 700px; max-width: 96vw;
+      max-height: 92vh; overflow-y: auto;
+      padding: 0; box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+    }
+
+    .a-stage {
+      display: flex; align-items: center; justify-content: center; gap: 60px;
+      width: 100%; padding: 32px 40px 0; margin-bottom: 32px;
+    }
+
+    /* Pulsing visualizer */
+    .viz-wrap { position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .viz-ring {
+      position: absolute; border-radius: 50%; border: 2px solid;
+      animation: pRing 2s ease-out infinite;
+    }
+    .viz-core {
+      width: 72px; height: 72px; border-radius: 50%;
+      position: relative; z-index: 2;
+      /* Pure CSS — no emoji */
+    }
+    .viz-label {
+      position: absolute; bottom: -28px; font-size: 11px; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+    }
+
+    /* Source (blue) */
+    .viz-wrap.src .viz-core { background: #2563eb; box-shadow: 0 0 28px rgba(37,99,235,0.45); }
+    .viz-wrap.src .viz-ring { border-color: rgba(59,130,246,0.5); }
+    .viz-wrap.src .viz-ring:nth-child(1) { width: 90px; height: 90px; animation-delay: 0s; }
+    .viz-wrap.src .viz-ring:nth-child(2) { width: 120px; height: 120px; animation-delay: 0.4s; }
+    .viz-wrap.src .viz-ring:nth-child(3) { width: 150px; height: 150px; animation-delay: 0.8s; }
+    .viz-wrap.src .viz-label { color: #1d4ed8; }
+
+    /* Target (green) */
+    .viz-wrap.tgt .viz-core { background: #059669; box-shadow: 0 0 28px rgba(5,150,105,0.45); }
+    .viz-wrap.tgt .viz-ring { border-color: rgba(16,185,129,0.5); }
+    .viz-wrap.tgt .viz-ring:nth-child(1) { width: 90px; height: 90px; animation-delay: 0.2s; }
+    .viz-wrap.tgt .viz-ring:nth-child(2) { width: 120px; height: 120px; animation-delay: 0.6s; }
+    .viz-wrap.tgt .viz-ring:nth-child(3) { width: 150px; height: 150px; animation-delay: 1.0s; }
+    .viz-wrap.tgt .viz-label { color: #047857; }
+
+    @keyframes pRing {
+      0% { transform: scale(0.85); opacity: 0.9; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    /* Stream connector */
+    .stream-connector {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .stream-track {
+      width: 120px; height: 6px; background: var(--border);
+      border-radius: 99px; overflow: hidden;
+    }
+    .stream-bar {
+      height: 100%; width: 40%;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      border-radius: 99px;
+      animation: sBar 1.6s ease-in-out infinite;
+    }
+    @keyframes sBar {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+    .stream-pct { font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; }
+    .stream-pct-label { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
+
+    /* Captions */
+    .a-captions {
+      width: 100%; max-width: 640px;
+      max-height: 320px; overflow: hidden; position: relative;
+      padding: 0 24px 24px;
+    }
+    .a-captions-inner {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .caption-line {
+      display: flex; align-items: flex-start; gap: 10px;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      font-size: 14px; color: var(--text-secondary); line-height: 1.55;
+      word-break: keep-all;
+    }
+    .caption-line.visible { opacity: 1; transform: translateY(0); }
+    .caption-icon {
+      width: 3px; border-radius: 99px; flex-shrink: 0;
+      align-self: stretch; margin-top: 2px;
+    }
+    .caption-icon.s { background: #2563eb; }
+    .caption-icon.t { background: #059669; }
+    mark.sg { background: rgba(37,99,235,0.12); color: #1d4ed8; border-radius: 3px; padding: 0 3px; }
+    mark.tg { background: rgba(5,150,105,0.12); color: #047857; border-radius: 3px; padding: 0 3px; }
+
+
+    /* ── CONDITION B OVERLAY — Gemini-style Import Flow ── */
+    #cond-b {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      z-index: 200; display: none; align-items: center; justify-content: center;
+    }
+    #cond-b.open { display: flex; }
+
+    /* Gemini colors */
+    :root {
+      --g-page-bg: #f0f4f9;
+      --g-sidebar-bg: #f0f4f9;
+      --g-main-bg: #ffffff;
+      --g-text-primary: #202124;
+      --g-text-secondary: #5f6368;
+      --g-blue: #1a73e8;
+      --g-border: #e0e0e0;
+      --g-hover: #e8eaed;
+      --g-active: #d3e3fd;
+    }
+
+    .b-gemini-modal {
+      background: var(--g-page-bg); border-radius: 16px;
+      width: 860px; max-width: 98vw; max-height: 94vh;
+      overflow: hidden; box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+      display: flex; flex-direction: column;
+    }
+
+    /* Step indicator */
+    #b-step-ind {
+      background: var(--g-hover); border-bottom: 1px solid var(--g-border);
+    }
+    #b-step-ind .csi-item.active .csi-num { background: var(--g-blue); color: #fff; }
+    #b-step-ind .csi-item.active .csi-label { color: var(--g-text-primary); }
+    #b-step-ind .csi-item.done .csi-num { background: var(--g-blue); color: #fff; }
+
+    .b-gemini-body {
+      display: flex; flex: 1; overflow: hidden; min-height: 0;
+    }
+
+    /* ── Gemini Left Sidebar ── */
+    .b-gemini-sidebar {
+      width: 260px; min-width: 260px; background: var(--g-sidebar-bg);
+      border-right: 1px solid var(--g-border);
+      display: flex; flex-direction: column;
+      padding: 0; overflow-y: auto; flex-shrink: 0;
+    }
+    .b-g-sidebar-top {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px 8px;
+    }
+    .b-g-hamburger {
+      font-size: 18px; color: var(--g-text-secondary); cursor: pointer;
+      width: 28px; text-align: center; flex-shrink: 0;
+    }
+    .b-g-logo-text {
+      font-size: 18px; font-weight: 600;
+      background: linear-gradient(90deg, #1a73e8 0%, #9c27b0 50%, #e91e63 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .b-g-sidebar-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 16px; border-radius: 0 24px 24px 0;
+      cursor: pointer; font-size: 13.5px; color: var(--g-text-primary);
+      transition: background 0.12s; margin: 1px 8px 1px 0;
+      border-radius: 24px;
+    }
+    .b-g-sidebar-row:hover { background: var(--g-hover); }
+    .b-g-sidebar-row.active { background: var(--g-active); font-weight: 600; }
+    .b-g-sidebar-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+    .b-g-section-header {
+      font-size: 11px; font-weight: 600; color: var(--g-text-secondary);
+      padding: 10px 16px 4px; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .b-g-sidebar-divider { height: 1px; background: var(--g-border); margin: 6px 0; }
+    .b-g-sidebar-bottom {
+      margin-top: auto; border-top: 1px solid var(--g-border);
+      padding: 10px 8px;
+    }
+    .b-g-upgrade-btn {
+      display: block; text-align: center; padding: 6px 16px;
+      background: var(--g-blue); color: #fff; border-radius: 20px;
+      font-size: 12.5px; font-weight: 600; margin: 4px 8px 8px;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .b-g-upgrade-btn:hover { opacity: 0.88; }
+    .b-g-user-row {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      border-radius: 24px; cursor: pointer; transition: background 0.12s;
+    }
+    .b-g-user-row:hover { background: var(--g-hover); }
+    .b-g-avatar-purple {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #7b1fa2; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .b-g-user-name { font-size: 13px; color: var(--g-text-primary); flex: 1; }
+
+    /* ── Gemini Profile Dropdown ── */
+    .b-g-profile-dropdown {
+      position: absolute; top: 60px; right: 16px; z-index: 50;
+      background: #fff; border-radius: 12px; width: 240px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.18); border: 1px solid var(--g-border);
+      display: none; flex-direction: column; overflow: hidden;
+    }
+    .b-g-profile-dropdown.open { display: flex; }
+    .b-g-dropdown-item {
+      padding: 10px 16px; font-size: 13.5px; color: var(--g-text-primary);
+      cursor: pointer; transition: background 0.1s; white-space: nowrap;
+    }
+    .b-g-dropdown-item:hover { background: var(--g-hover); }
+    .b-g-dropdown-item.highlight {
+      font-weight: 700; color: var(--g-blue);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .b-g-dropdown-item.highlight::after { content: '→'; font-size: 14px; }
+    .b-g-dropdown-divider { height: 1px; background: var(--g-border); margin: 4px 0; }
+    .b-g-dropdown-location {
+      padding: 8px 16px; font-size: 11.5px; color: var(--g-text-secondary); line-height: 1.5;
+    }
+    .b-g-dropdown-footer {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px 10px; border-top: 1px solid var(--g-border);
+    }
+
+    /* ── Gemini Main Area ── */
+    .b-gemini-main {
+      flex: 1; background: var(--g-main-bg);
+      display: flex; flex-direction: column; overflow: hidden;
+      position: relative;
+    }
+    .b-gemini-topbar {
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: 10px 16px; gap: 10px; border-bottom: 1px solid var(--g-border);
+      flex-shrink: 0;
+    }
+    .b-g-topbar-icon {
+      font-size: 18px; cursor: pointer; color: var(--g-text-secondary);
+      width: 32px; height: 32px; display: flex; align-items: center;
+      justify-content: center; border-radius: 50%; transition: background 0.12s;
+    }
+    .b-g-topbar-icon:hover { background: var(--g-hover); }
+
+    /* ── Gemini Home Screen ── */
+    #b-gemini-home {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 24px;
+    }
+    .b-g-greeting {
+      font-size: 32px; font-weight: 400; color: var(--g-text-primary);
+      margin-bottom: 4px; text-align: center;
+    }
+    .b-g-greeting strong {
+      background: linear-gradient(90deg, #1a73e8 0%, #c2185b 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .b-g-subheading {
+      font-size: 32px; font-weight: 400; color: var(--g-text-primary);
+      margin-bottom: 32px; text-align: center;
+    }
+    .b-g-input-bar {
+      width: 100%; max-width: 640px; border: 1px solid var(--g-border);
+      border-radius: 28px; background: #fff; padding: 12px 16px;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+    .b-g-input-tools-btn {
+      padding: 6px 12px; border-radius: 20px; border: 1px solid var(--g-border);
+      font-size: 13px; color: var(--g-text-secondary); background: #fff;
+      cursor: default; white-space: nowrap;
+    }
+    .b-g-input-placeholder {
+      flex: 1; font-size: 15px; color: var(--g-text-secondary); cursor: default;
+    }
+    .b-g-input-right { display: flex; align-items: center; gap: 6px; }
+    .b-g-fast-chip {
+      padding: 4px 10px; border-radius: 20px; border: 1px solid var(--g-border);
+      font-size: 12px; color: var(--g-text-secondary); background: #fff;
+      cursor: default; white-space: nowrap;
+    }
+    .b-g-mic-icon, .b-g-send-icon {
+      width: 32px; height: 32px; border-radius: 50%; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.12s;
+    }
+    .b-g-mic-icon { background: transparent; color: var(--g-text-secondary); font-size: 16px; }
+    .b-g-mic-icon:hover { background: var(--g-hover); }
+    .b-g-send-icon { background: #444; color: #fff; font-size: 14px; }
+    .b-g-send-icon:hover { background: #222; }
+    .b-g-quick-pills {
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+      max-width: 640px;
+    }
+    .b-g-quick-pill {
+      padding: 8px 16px; border-radius: 20px; border: 1px solid var(--g-border);
+      font-size: 13px; color: var(--g-text-secondary); background: #fff;
+      cursor: default; transition: background 0.12s; white-space: nowrap;
+    }
+    .b-g-quick-pill:hover { background: var(--g-hover); }
+
+    /* ── Import Memory Page ── */
+    #b-import-memory-page {
+      flex: 1; overflow-y: auto; padding: 28px 32px;
+      display: none;
+    }
+    #b-import-memory-page.active { display: block; }
+    .b-g-page-title {
+      font-size: 22px; font-weight: 700; color: var(--g-text-primary);
+      margin-bottom: 24px; letter-spacing: -0.01em;
+    }
+    .b-g-step-row {
+      display: flex; align-items: flex-start; gap: 16px;
+      margin-bottom: 20px;
+    }
+    .b-g-step-circle {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--g-blue); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+    }
+    .b-g-step-content { flex: 1; }
+    .b-g-step-text {
+      font-size: 14px; color: var(--g-text-primary); margin-bottom: 10px;
+      line-height: 1.55;
+    }
+    .b-g-prompt-box {
+      border: 1.5px solid var(--g-border); border-radius: 10px;
+      overflow: hidden; position: relative;
+    }
+    .b-g-prompt-box-inner {
+      padding: 12px 14px; background: #f8f9fa;
+      font-size: 12.5px; font-family: 'SF Mono','Fira Code','Roboto Mono',monospace;
+      line-height: 1.6; color: var(--g-text-primary);
+      max-height: 180px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .b-g-copy-btn {
+      position: absolute; top: 8px; right: 8px;
+      padding: 4px 10px; border-radius: 6px;
+      border: 1px solid var(--g-border); background: #fff;
+      font-size: 12px; color: var(--g-text-secondary);
+      cursor: pointer; transition: background 0.12s;
+    }
+    .b-g-copy-btn:hover { background: var(--g-hover); }
+    .b-g-copy-btn.copied { background: var(--g-blue); color: #fff; border-color: var(--g-blue); }
+    .b-g-textarea {
+      width: 100%; min-height: 110px; padding: 12px 14px;
+      border: 1.5px solid var(--g-border); border-radius: 10px;
+      background: #f8f9fa; font-size: 13.5px; font-family: inherit;
+      color: var(--g-text-primary); resize: vertical; line-height: 1.6;
+      transition: border-color 0.15s;
+    }
+    .b-g-textarea:focus { outline: none; border-color: var(--g-blue); }
+    .b-g-textarea-footer {
+      display: flex; justify-content: flex-end; margin-top: 8px;
+    }
+    .b-g-add-memory-btn {
+      padding: 8px 18px; border-radius: 8px; border: none;
+      background: var(--g-blue); color: #fff; font-size: 13.5px;
+      font-weight: 600; font-family: inherit; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .b-g-add-memory-btn:disabled {
+      background: #c5c5c5; cursor: not-allowed;
+    }
+    .b-g-add-memory-btn:not(:disabled):hover { opacity: 0.88; }
+    .b-g-divider { border: none; border-top: 1px solid var(--g-border); margin: 20px 0; }
+    .b-g-import-chats-title {
+      font-size: 15px; font-weight: 700; color: var(--g-text-primary); margin-bottom: 6px;
+    }
+    .b-g-import-chats-desc {
+      font-size: 13px; color: var(--g-text-secondary); line-height: 1.55;
+      margin-bottom: 12px;
+    }
+    .b-g-add-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 20px; border: 1.5px solid var(--g-blue);
+      background: transparent; color: var(--g-blue); font-size: 13px;
+      font-weight: 600; font-family: inherit; cursor: pointer;
+      transition: background 0.12s;
+    }
+    .b-g-add-btn:hover { background: rgba(26,115,232,0.08); }
+    .b-g-footer-note {
+      font-size: 11.5px; color: var(--g-text-secondary); margin-top: 16px;
+      line-height: 1.6;
+    }
+
+    /* Hint overlay bar (instructions) */
+    #b-hint-bar {
+      display: none; background: #fff3cd; border-top: 1px solid #ffc107;
+      padding: 8px 16px; font-size: 12.5px; color: #856404;
+      flex-shrink: 0; align-items: center; gap: 8px;
+    }
+    #b-hint-bar.visible { display: flex; }
+
+    /* ── ChatGPT Simulation (inside B) ── */
+    #b-chatgpt-sim {
+      position: fixed; inset: 0; z-index: 300;
+      display: none; align-items: stretch;
+    }
+    #b-chatgpt-sim.open { display: flex; }
+    .b-gpt-sidebar {
+      width: 260px; min-width: 260px; background: #171717;
+      display: flex; flex-direction: column; padding: 10px 8px;
+    }
+    .b-gpt-logo-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px 16px; border-bottom: 1px solid #2d2d2d; margin-bottom: 8px;
+    }
+    .b-gpt-logo-icon {
+      width: 28px; height: 28px; border-radius: 6px; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .b-gpt-logo-icon svg { width: 18px; height: 18px; color: #171717; }
+    .b-gpt-logo-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .b-gpt-new-chat {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      border-radius: 8px; cursor: pointer; color: #ececec; font-size: 13.5px;
+      transition: background 0.12s; border: 1px solid #2d2d2d; margin-bottom: 10px;
+    }
+    .b-gpt-new-chat:hover { background: #2d2d2d; }
+    .b-gpt-search {
+      padding: 8px 12px; border-radius: 8px; border: none;
+      background: #2d2d2d; color: #ececec; font-size: 13px;
+      font-family: inherit; margin-bottom: 12px;
+      width: 100%; box-sizing: border-box;
+    }
+    .b-gpt-section-label {
+      font-size: 11px; font-weight: 600; color: #8e8ea0;
+      padding: 4px 10px 4px; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .b-gpt-chat-item {
+      padding: 7px 10px; border-radius: 8px; cursor: pointer;
+      font-size: 13px; color: #ececec; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      transition: background 0.12s;
+    }
+    .b-gpt-chat-item:hover { background: #2d2d2d; }
+    .b-gpt-main {
+      flex: 1; background: #fff; display: flex; flex-direction: column;
+    }
+    .b-gpt-main-topbar {
+      display: flex; align-items: center; padding: 12px 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .b-gpt-model-label {
+      font-size: 14px; font-weight: 600; color: #1c1917;
+    }
+    .b-gpt-messages {
+      flex: 1; overflow-y: auto; padding: 24px 40px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .b-gpt-user-msg {
+      align-self: flex-end; max-width: 70%; background: #f4f4f4;
+      border-radius: 18px; padding: 12px 16px; font-size: 14px;
+      color: #1c1917; line-height: 1.55;
+    }
+    .b-gpt-assistant-msg {
+      align-self: flex-start; max-width: 80%; display: flex; gap: 10px;
+    }
+    .b-gpt-assist-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #10a37f; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .b-gpt-assist-bubble {
+      font-size: 14px; color: #1c1917; line-height: 1.7;
+      padding-top: 4px; white-space: pre-wrap;
+      max-height: 320px; overflow-y: auto; flex: 1;
+    }
+    .b-gpt-typing-dots { display: flex; gap: 4px; padding: 8px 0; }
+    .b-gpt-typing-dots span {
+      width: 7px; height: 7px; background: #9ca3af;
+      border-radius: 50%; animation: tBounce 1.2s infinite;
+    }
+    .b-gpt-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .b-gpt-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    .b-gpt-paste-back-btn {
+      display: none; align-self: flex-start; margin-left: 38px;
+      margin-top: 4px; padding: 9px 20px; border-radius: 8px;
+      border: none; background: #1c1917; color: #fff;
+      font-size: 13.5px; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .b-gpt-paste-back-btn.show { display: block; }
+    .b-gpt-paste-back-btn:hover { opacity: 0.85; }
+
+    /* ── Gemini Success State ── */
+    #b-gemini-success {
+      flex: 1; overflow-y: auto; padding: 20px 0;
+      display: none;
+    }
+    #b-gemini-success.active { display: block; }
+    .b-g-success-chat {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 16px 24px;
+    }
+    .b-g-gemini-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #1a73e8, #9c27b0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .b-g-success-response {
+      flex: 1; font-size: 14px; color: var(--g-text-primary);
+      line-height: 1.75; padding-top: 6px;
+    }
+    .b-g-done-btn {
+      display: block; margin: 0 24px 20px;
+      padding: 10px 24px; border-radius: 8px;
+      border: 1.5px solid var(--g-border); background: #1c1917;
+      color: #fff; font-size: 14px; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: opacity 0.15s;
+      width: calc(100% - 48px);
+    }
+    .b-g-done-btn:hover { opacity: 0.88; }
+
+    /* ZIP upload states inside import page */
+    #b-g-upload-idle, #b-g-upload-progress, #b-g-upload-done { }
+    .b-g-upload-row {
+      display: flex; align-items: flex-start; gap: 10px; margin-top: 10px;
+    }
+    .b-g-upload-file-name {
+      font-size: 13px; font-weight: 600; color: var(--g-text-primary); margin-bottom: 6px;
+    }
+    .b-g-upload-bar-wrap {
+      height: 4px; background: var(--g-border); border-radius: 2px; overflow: hidden; margin-bottom: 4px;
+    }
+    .b-g-upload-bar {
+      height: 100%; background: var(--g-blue); border-radius: 2px;
+      width: 0; transition: width 1.5s ease;
+    }
+    .b-g-upload-status { font-size: 12px; color: var(--g-text-secondary); }
+    .b-g-upload-success-row {
+      display: flex; align-items: center; gap: 10px; margin-top: 10px;
+      padding: 10px 14px; background: #e8f5e9; border-radius: 8px;
+      border: 1px solid #a5d6a7;
+    }
+    .b-g-upload-success-icon {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #2e7d32; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .b-g-upload-success-text { font-size: 13px; color: #1b5e20; }
+
+    /* Sidebar new chat highlight */
+    .b-g-sidebar-row.new-chat-highlight {
+      background: var(--g-active); font-weight: 600;
+    }
+
+
+    /* ── CONDITION C OVERLAY — Full Realistic Flow ── */
+    #cond-c {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+      z-index: 200; display: none; align-items: center; justify-content: center;
+    }
+    #cond-c.open { display: flex; }
+
+    .c-modal {
+      background: var(--main-bg); border-radius: 16px; width: 720px; max-width: 96vw;
+      max-height: 92vh; overflow-y: auto;
+      padding: 0; box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+    }
+
+    /* ChatGPT background behind modal */
+    .c-gpt-bg-wrapper {
+      position: relative;
+    }
+    .c-gpt-bg-layer {
+      position: absolute; inset: 0; border-radius: 16px; overflow: hidden;
+      display: flex; pointer-events: none;
+    }
+    .c-gpt-bg-sidebar {
+      width: 180px; background: #171717; flex-shrink: 0;
+      border-radius: 16px 0 0 0;
+    }
+    .c-gpt-bg-main {
+      flex: 1; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 0 16px 0 0;
+    }
+    .c-gpt-bg-main-text {
+      font-size: 20px; font-weight: 600; color: #1c1917; opacity: 0.25;
+    }
+    .c-gpt-overlay-dim {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.38);
+      border-radius: 16px; z-index: 1;
+    }
+    .c-modal-content-layer {
+      position: relative; z-index: 2;
+    }
+
+    /* Step 1: Settings modal */
+    #cond-c-settings { display: block; }
+    .c-chatgpt-modal-wrap {
+      display: flex; min-height: 460px; background: #fff;
+      border-radius: 12px; overflow: hidden; margin: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    .c-settings-nav {
+      width: 190px; min-width: 190px; background: #f9f9f9;
+      border-right: 1px solid var(--border);
+      padding: 20px 8px; display: flex; flex-direction: column; gap: 2px;
+      flex-shrink: 0;
+    }
+    .c-settings-nav-title {
+      font-size: 17px; font-weight: 700; color: var(--text-primary);
+      padding: 0 12px 16px; letter-spacing: -0.02em;
+    }
+    .c-nav-item {
+      display: flex; align-items: center; gap: 9px; padding: 8px 12px;
+      border-radius: 8px; font-size: 13px; color: var(--text-secondary);
+      cursor: default; transition: background 0.12s; word-break: keep-all;
+    }
+    .c-nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .c-nav-item.active { background: var(--active-bg); color: var(--text-primary); font-weight: 500; }
+    .c-settings-content { flex: 1; padding: 28px; overflow-y: auto; }
+    .c-settings-section-title {
+      font-size: 17px; font-weight: 700; color: var(--text-primary);
+      margin-bottom: 20px; letter-spacing: -0.02em;
+    }
+    .c-settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .c-settings-row:last-child { border-bottom: none; }
+    .c-settings-row-left { flex: 1; }
+    .c-settings-row-label { font-size: 13.5px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+    .c-settings-row-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; word-break: keep-all; }
+    .c-export-btn {
+      padding: 6px 16px; border-radius: 8px; border: 1.5px solid var(--border);
+      background: var(--input-bg); color: var(--text-primary); font-size: 13px;
+      font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap;
+      transition: background 0.15s; flex-shrink: 0;
+    }
+    .c-export-btn:hover { background: var(--hover-bg); }
+    .c-export-btn.done { background: rgba(28,25,23,0.06); border-color: #1C1917; color: #1C1917; }
+    .c-delete-btn-fake {
+      padding: 6px 14px; border-radius: 8px; border: 1.5px solid #dc2626;
+      background: transparent; color: #dc2626; font-size: 13px; font-weight: 600;
+      white-space: nowrap; flex-shrink: 0; cursor: default;
+    }
+    .c-modal-close-btn {
+      position: absolute; top: 28px; right: 28px;
+      width: 28px; height: 28px; border-radius: 50%; border: none;
+      background: rgba(0,0,0,0.08); color: #666; font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      z-index: 10;
+    }
+    .c-modal-close-btn:hover { background: rgba(0,0,0,0.16); }
+
+    /* Confirmation overlay */
+    #cond-c-settings { position: relative; }
+    .c-confirm-overlay {
+      position: absolute; inset: 0; z-index: 10; border-radius: 16px;
+      background: rgba(0,0,0,0.38); display: none; align-items: center; justify-content: center;
+    }
+    .c-confirm-overlay.open { display: flex; }
+    .c-confirm-box {
+      background: var(--main-bg); border-radius: 14px; width: 380px; max-width: 90%;
+      padding: 24px 26px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+    }
+    .c-confirm-title { font-size: 14.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; line-height: 1.4; word-break: keep-all; }
+    .c-confirm-list { padding-left: 0; margin: 0 0 18px; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .c-confirm-list li { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; padding-left: 14px; position: relative; word-break: keep-all; }
+    .c-confirm-list li::before { content: '•'; position: absolute; left: 0; color: var(--text-muted); }
+    .c-confirm-btns { display: flex; justify-content: flex-end; gap: 8px; }
+    .c-confirm-cancel { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--border); background: transparent; font-size: 13px; font-family: inherit; cursor: pointer; color: var(--text-secondary); }
+    .c-confirm-cancel:hover { background: var(--hover-bg); }
+    .c-confirm-ok { padding: 7px 16px; border-radius: 8px; border: none; background: #1C1917; color: #fff; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .c-confirm-ok:hover { opacity: 0.85; }
+
+    /* Email verification screen */
+    #cond-c-verify { display: none; }
+    .c-verify-wrap {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 40px; min-height: 400px; text-align: center;
+    }
+    .c-verify-brand { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); margin-bottom: 28px; }
+    .c-verify-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.02em; }
+    .c-verify-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.55; word-break: keep-all; max-width: 300px; }
+    .c-verify-field-label { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; text-align: left; margin-bottom: 6px; width: 280px; }
+    .c-verify-input {
+      width: 280px; padding: 10px 14px; border-radius: 8px; border: 1.5px solid var(--border);
+      font-size: 18px; font-family: inherit; background: var(--input-bg); color: var(--text-primary);
+      box-sizing: border-box; outline: none; letter-spacing: 0.25em; text-align: center;
+      transition: border-color 0.15s; margin-bottom: 12px;
+    }
+    .c-verify-input:focus { border-color: #1C1917; }
+    .c-verify-btn {
+      width: 280px; padding: 11px; border-radius: 8px; border: none; background: #1C1917;
+      color: #fff; font-size: 14px; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: opacity 0.15s; margin-bottom: 10px;
+    }
+    .c-verify-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .c-verify-resend { font-size: 12px; color: var(--text-secondary); cursor: default; }
+
+    /* Gmail inbox screen */
+    #cond-c-gmail { display: none; }
+    .c-gmail-outer { border-radius: 0 0 16px 16px; overflow: hidden; display: flex; flex-direction: column; min-height: 380px; }
+    .c-gmail-topbar {
+      display: flex; align-items: center; gap: 14px; padding: 10px 16px;
+      background: #f6f8fc; border-bottom: 1px solid var(--border);
+    }
+    .c-gmail-hamburger { font-size: 18px; color: var(--text-secondary); cursor: pointer; }
+    .c-gmail-logo { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+    .c-gmail-logo .gl { color: #4285f4; }
+    .c-gmail-logo .gm { color: #EA4335; }
+    .c-gmail-logo .ga { color: #FBBC05; }
+    .c-gmail-logo .gi { color: #4285f4; }
+    .c-gmail-logo .gl2 { color: #34A853; }
+    .c-gmail-search-bar {
+      flex: 1; padding: 8px 16px; border-radius: 22px; background: #eaf1fb;
+      font-size: 13px; color: var(--text-muted); border: none; cursor: default; font-family: inherit;
+    }
+    .c-gmail-topbar-icons { display: flex; gap: 8px; }
+    .c-gmail-topbar-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--text-secondary); cursor: default;
+    }
+    .c-gmail-body { display: flex; flex: 1; }
+    .c-gmail-sidebar { width: 200px; padding: 10px 6px; border-right: 1px solid var(--border); flex-shrink: 0; }
+    .c-gmail-compose-btn {
+      display: flex; align-items: center; gap: 8px; padding: 14px 20px 14px 16px;
+      background: #c2e7ff; border-radius: 20px; font-size: 13.5px; font-weight: 600;
+      color: #001d35; cursor: default; margin-bottom: 8px; width: fit-content;
+    }
+    .c-gmail-nav { display: flex; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 0 20px 20px 0; font-size: 13px; color: var(--text-secondary); cursor: default; }
+    .c-gmail-nav.active { background: #d3e3fd; color: #001d35; font-weight: 600; }
+    .c-gmail-badge { font-size: 11px; font-weight: 700; color: #c5221f; margin-left: auto; }
+    .c-gmail-email-list { flex: 1; overflow-y: auto; }
+    .c-gmail-row {
+      display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+      border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s;
+    }
+    .c-gmail-row:hover { background: var(--hover-bg); }
+    .c-gmail-row.unread { background: var(--input-bg); }
+    .c-gmail-row.opened { background: var(--main-bg); }
+    .c-gmail-avatar { width: 26px; height: 26px; border-radius: 50%; background: #1a73e8; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .c-gmail-row-from { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); width: 90px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .c-gmail-row.unread .c-gmail-row-from { font-weight: 700; color: var(--text-primary); }
+    .c-gmail-row-subject { font-size: 12.5px; color: var(--text-muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .c-gmail-row.unread .c-gmail-row-subject { color: var(--text-secondary); font-weight: 500; }
+    .c-gmail-row-date { font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; }
+    #c-gmail-detail { display: none; padding: 20px; border-top: 1px solid var(--border); }
+    .c-gmail-detail-subject { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    .c-gmail-detail-from { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+    .c-gmail-detail-body { font-size: 13.5px; line-height: 1.75; color: var(--text-primary); }
+    .c-gmail-dl-btn { display: inline-block; margin: 16px 0 4px; padding: 10px 22px; border-radius: 8px; background: #1a73e8; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; border: none; transition: opacity 0.15s; }
+    .c-gmail-dl-btn:hover { opacity: 0.88; }
+
+    /* Download page + Finder */
+    #cond-c-finder { display: none; }
+    .c-download-page {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 56px 40px; min-height: 360px; text-align: center;
+    }
+    .c-download-brand { font-size: 26px; font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); margin-bottom: 16px; }
+    .c-download-brand span { color: #D97757; }
+    .c-download-title { font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    .c-download-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; }
+    .c-download-progress-wrap { width: 240px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 24px; }
+    .c-download-bar { height: 100%; background: #1C1917; border-radius: 2px; width: 0; transition: width 1.8s ease; }
+    .c-download-badge { margin-top: 4px; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); font-size: 12px; display: none; min-width: 240px; text-align: left; }
+    .c-download-badge.show { display: block; }
+    .c-download-badge-filename { font-weight: 600; color: var(--text-primary); margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+    .c-download-badge-status { color: var(--text-muted); }
+    .c-download-continue { padding: 9px 24px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--input-bg); color: var(--text-primary); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 20px; display: none; transition: background 0.15s; }
+    .c-download-continue.show { display: inline-block; }
+    .c-download-continue:hover { background: var(--hover-bg); }
+    /* Finder */
+    .c-finder-bar {
+      display: flex; align-items: center; gap: 8px; padding: 9px 16px;
+      background: var(--sidebar-bg); border-bottom: 1px solid var(--border);
+    }
+    .c-finder-dots { display: flex; gap: 5px; }
+    .c-finder-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .c-finder-dot.red { background: #ff5f57; }
+    .c-finder-dot.yellow { background: #ffbd2e; }
+    .c-finder-dot.green { background: #28c840; }
+    .c-finder-arrows { display: flex; gap: 2px; color: var(--text-muted); font-size: 13px; }
+    .c-finder-path-txt { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+    .c-finder-col-row {
+      display: flex; align-items: center; padding: 4px 16px;
+      background: var(--sidebar-bg); border-bottom: 1px solid var(--border);
+      font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .c-finder-col-name { flex: 1; }
+    .c-finder-col-date { width: 130px; flex-shrink: 0; }
+    .c-finder-col-size { width: 65px; text-align: right; flex-shrink: 0; padding-right: 16px; }
+    .c-finder-col-kind { width: 100px; flex-shrink: 0; }
+    .c-finder-file {
+      display: flex; align-items: center; gap: 10px; padding: 7px 16px;
+      border-bottom: 1px solid var(--border); cursor: default; transition: background 0.1s;
+    }
+    .c-finder-file:last-of-type { border-bottom: none; }
+    .c-finder-file.clickable { cursor: pointer; }
+    .c-finder-file.clickable:hover { background: var(--hover-bg); }
+    .c-finder-file.highlight { background: rgba(26,115,232,0.12); }
+    .c-finder-icon { font-size: 17px; width: 22px; text-align: center; flex-shrink: 0; }
+    .c-finder-name { flex: 1; font-size: 13px; color: var(--text-primary); font-weight: 500; }
+    .c-finder-date { width: 130px; font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; }
+    .c-finder-size { width: 65px; font-size: 11.5px; color: var(--text-muted); text-align: right; flex-shrink: 0; padding-right: 16px; }
+    .c-finder-kind { width: 100px; font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; }
+    .c-finder-proceed-btn { display: none; width: calc(100% - 40px); margin: 16px 20px 20px; padding: 11px; border-radius: 10px; border: none; background: #1C1917; color: #fff; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .c-finder-proceed-btn.show { display: block; }
+
+    /* Step 5: Conversation selection (Claude file explorer) */
+    #cond-c-files { display: none; }
+    .c-files-inner { padding: 0 0 28px; }
+    .c-file-explorer-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    }
+    .c-file-explorer-header-logo {
+      width: 28px; height: 28px; border-radius: 50%; background: #D97757;
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .c-file-explorer-header-text { flex: 1; }
+    .c-file-explorer-header-title { font-size: 14px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+    .c-file-explorer-header-sub { font-size: 12px; color: var(--text-muted); }
+    .c-files-body { padding: 20px 20px 28px; }
+    .c-zip-header {
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+      background: var(--input-bg); border: 1.5px solid var(--border);
+      border-radius: 10px 10px 0 0; border-bottom: none;
+    }
+    .c-zip-icon { font-size: 22px; flex-shrink: 0; }
+    .c-zip-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+    .c-zip-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .c-uuid-warning {
+      display: flex; gap: 9px; align-items: flex-start; padding: 11px 14px;
+      background: rgba(28,25,23,0.05); border: 1px solid rgba(28,25,23,0.12); border-left-width: 3px;
+      border-left-color: var(--text-secondary);
+      font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; word-break: keep-all;
+    }
+    .c-uuid-warning strong { color: var(--text-primary); }
+    .c-conv-list {
+      border: 1.5px solid var(--border); border-top: none;
+      border-radius: 0 0 10px 10px; overflow: hidden;
+      margin-bottom: 14px; max-height: 300px; overflow-y: auto;
+    }
+    .c-conv-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 11px 14px; border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background 0.1s; user-select: none;
+    }
+    .c-conv-item:last-child { border-bottom: none; }
+    .c-conv-item:hover { background: var(--hover-bg); }
+    .c-conv-item.selected { background: var(--active-bg); }
+    .c-conv-check {
+      width: 17px; height: 17px; border-radius: 4px; border: 1.5px solid var(--border);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; transition: all 0.15s;
+    }
+    .c-conv-item.selected .c-conv-check { background: #1C1917; border-color: #1C1917; color: #fff; }
+    .c-conv-uuid {
+      font-family: 'SF Mono', 'Fira Code', 'Roboto Mono', monospace;
+      font-size: 11.5px; color: var(--text-secondary); letter-spacing: 0.02em; margin-bottom: 2px;
+    }
+    .c-conv-snippet { font-size: 12px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .c-conv-snippet.has-preview { color: var(--text-muted); }
+    .c-conv-snippet.no-preview { color: #a09990; font-style: italic; }
+    .c-conv-info { flex: 1; min-width: 0; }
+    .c-preview-badge {
+      font-size: 11px; font-weight: 600; color: var(--text-secondary);
+      background: var(--hover-bg); border: 1px solid var(--border);
+      padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    }
+    .c-conv-wrap { border-bottom: 1px solid var(--border); }
+    .c-conv-wrap:last-child { border-bottom: none; }
+    .c-conv-item { border-bottom: none; }
+    .c-conv-folder-area {
+      display: flex; align-items: center; gap: 4px; flex-shrink: 0; cursor: pointer;
+      padding: 2px 4px; border-radius: 5px; transition: background 0.12s; margin-right: 2px;
+    }
+    .c-conv-folder-area:hover { background: var(--hover-bg); }
+    .c-expand-chevron {
+      width: 13px; height: 13px; color: var(--text-muted); flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+    .c-expand-chevron.open { transform: rotate(90deg); }
+    .c-conv-json-panel {
+      display: none; background: #1e1e1e; border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .c-conv-json-panel.open { display: block; }
+    .c-conv-json-pre {
+      margin: 0; padding: 14px 16px; font-family: 'SF Mono','Fira Code','Roboto Mono',monospace;
+      font-size: 11.5px; line-height: 1.6; color: #d4d4d4; overflow-x: auto;
+      white-space: pre; word-break: normal;
+    }
+    .c-select-status { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; }
+    .c-select-status strong { color: var(--text-primary); }
+
+    /* C step indicator — compact 5 steps */
+    #c-step-ind.five-steps { padding: 10px 14px; }
+    #c-step-ind.five-steps .csi-arrow { margin: 0 4px; font-size: 10px; }
+    #c-step-ind.five-steps .csi-label { font-size: 11px; }
+    #c-step-ind.five-steps .csi-num { width: 18px; height: 18px; font-size: 9px; }
+
+    #c-upload-btn {
+      width: 100%; padding: 11px; border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+      background: var(--hover-bg); color: var(--text-muted); transition: background 0.2s, color 0.2s;
+    }
+    #c-upload-btn.ready { background: #1C1917; color: #fff; }
+    #c-upload-btn.ready:hover { background: #111; }
+
+    /* C colors for step indicator */
+    #c-step-ind .csi-item.active .csi-num { background: #1C1917; color: #fff; }
+    #c-step-ind .csi-item.active .csi-label { color: var(--text-primary); }
+    #c-step-ind .csi-item.done .csi-num { background: #1C1917; color: #fff; }
+
+    /* Sidebar condition jump buttons */
+    .cond-jump-wrap {
+      margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
+    }
+    .cond-jump-label {
+      font-size: 10px; font-weight: 600; color: var(--text-muted);
+      letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .cond-jump-btns { display: flex; gap: 5px; }
+    .cond-jump-btn {
+      flex: 1; padding: 6px 0; border-radius: 7px; border: 1.5px solid var(--border);
+      background: transparent; font-size: 12px; font-weight: 700;
+      cursor: pointer; font-family: inherit; color: var(--text-muted);
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .cond-jump-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+    .cond-jump-btn.active-a { border-color: #1C1917; color: #1C1917; background: rgba(28,25,23,0.07); }
+    .cond-jump-btn.active-b { border-color: #1C1917; color: #1C1917; background: rgba(28,25,23,0.07); }
+    .cond-jump-btn.active-c { border-color: #1C1917; color: #1C1917; background: rgba(28,25,23,0.07); }
+    #c-upload-btn {
+      width: 100%; padding: 11px; border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+      background: var(--hover-bg); color: var(--text-muted); transition: background 0.2s, color 0.2s;
+    }
+    #c-upload-btn.ready { background: #1C1917; color: #fff; }
+    #c-upload-btn.ready:hover { background: #111; }
+
+    /* ── CONCLUSION SCREEN (full page) ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #conclusion-screen {
+      position: fixed; inset: 0; z-index: 300;
+      display: none; align-items: center; justify-content: center;
+      background: var(--main-bg); padding: 40px 24px;
+    }
+    #conclusion-screen.open { display: flex; }
+    .conclusion-inner-page {
+      max-width: 560px; width: 100%;
+      animation: fadeUp 0.45s ease both;
+    }
+    .conclusion-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 20px;
+    }
+    .conclusion-eyebrow.a { color: var(--text-secondary); }
+    .conclusion-eyebrow.b { color: var(--text-secondary); }
+    .conclusion-eyebrow.c { color: var(--text-secondary); }
+    .conclusion-h1 {
+      font-size: clamp(32px, 5vw, 52px); font-weight: 700;
+      color: var(--text-primary); letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 12px; word-break: keep-all;
+    }
+    .conclusion-h1 em { font-style: normal; }
+    .conclusion-h1.a em { color: var(--text-primary); }
+    .conclusion-h1.b em { color: var(--text-primary); }
+    .conclusion-h1.c em { color: var(--text-primary); }
+    .conclusion-desc-text {
+      font-size: 15px; color: var(--text-secondary); line-height: 1.7;
+      margin-bottom: 28px; word-break: keep-all;
+    }
+    .conclusion-divider { height: 1px; background: var(--border); margin: 0 0 24px; }
+    .concl-items-page {
+      display: flex; flex-direction: column; gap: 8px; margin-bottom: 36px;
+    }
+    .concl-item-page {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border: 1px solid var(--border);
+      border-radius: 10px; background: var(--input-bg);
+    }
+    .concl-item-page-check {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .concl-item-page-check.a { background: rgba(28,25,23,0.10); color: #1C1917; }
+    .concl-item-page-check.b { background: rgba(28,25,23,0.10); color: #1C1917; }
+    .concl-item-page-check.c { background: rgba(28,25,23,0.10); color: #1C1917; }
+    .concl-item-page-name { font-size: 14px; font-weight: 600; color: var(--text-primary); flex: 1; word-break: keep-all; }
+    .concl-item-page-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+    .conclusion-next-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 100px;
+      background: var(--text-primary); color: #fff;
+      font-size: 15px; font-weight: 600; font-family: inherit;
+      border: none; cursor: pointer; letter-spacing: -0.01em;
+      transition: opacity 0.15s;
+    }
+    .conclusion-next-btn:hover { opacity: 0.85; }
+
+    /* ── TRANSITION SCREEN ── */
+    #transition-screen {
+      position: fixed; inset: 0; z-index: 400;
+      display: none; align-items: center; justify-content: center;
+      background: var(--main-bg); padding: 40px 24px;
+    }
+    #transition-screen.open { display: flex; }
+    .transition-inner {
+      max-width: 520px; width: 100%;
+      animation: fadeUp 0.4s ease both;
+    }
+    .transition-done-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+    .transition-done-check {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--text-primary); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; flex-shrink: 0;
+    }
+    .transition-title {
+      font-size: clamp(28px, 4.5vw, 44px); font-weight: 700;
+      color: var(--text-primary); letter-spacing: -0.03em;
+      line-height: 1.15; margin-bottom: 16px; word-break: keep-all;
+    }
+    .transition-subtitle {
+      font-size: 15px; color: var(--text-secondary); line-height: 1.7;
+      margin-bottom: 36px; word-break: keep-all; max-width: 440px;
+    }
+    .transition-progress {
+      display: flex; align-items: center;
+      margin-bottom: 40px;
+    }
+    .tr-step {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 600;
+    }
+    .tr-dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .tr-step.done .tr-dot { background: var(--text-primary); color: #fff; }
+    .tr-step.done .tr-label { color: var(--text-secondary); }
+    .tr-step.next .tr-dot { background: var(--accent); color: #fff; }
+    .tr-step.next .tr-label { color: var(--text-primary); }
+    .tr-step.upcoming .tr-dot { border: 1.5px solid var(--border); color: var(--text-muted); }
+    .tr-step.upcoming .tr-label { color: var(--text-muted); }
+    .tr-label { white-space: nowrap; }
+    .tr-connector { flex: 1; height: 1px; background: var(--border); margin: 0 12px; max-width: 48px; }
+    .transition-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 100px;
+      background: var(--text-primary); color: #fff;
+      font-size: 15px; font-weight: 600; font-family: inherit;
+      border: none; cursor: pointer; letter-spacing: -0.01em;
+      transition: opacity 0.15s;
+    }
+    .transition-cta:hover { opacity: 0.85; }
+    .transition-note {
+      margin-top: 28px; padding: 14px 18px;
+      background: var(--hover-bg); border-left: 3px solid var(--border);
+      border-radius: 0 8px 8px 0;
+      font-size: 12px; color: var(--text-muted); line-height: 1.7;
+      word-break: keep-all; font-style: italic; max-width: 440px;
+    }
+    .transition-note strong { font-style: normal; color: var(--text-secondary); }
+
+    /* ── API KEY INPUT ── */
+    .apikey-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+    .apikey-input {
+      flex: 1; padding: 8px 12px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 13px; font-family: inherit;
+      color: var(--text-primary); background: #fff;
+      transition: border-color 0.15s; letter-spacing: 0.02em;
+    }
+    .apikey-input:focus { outline: none; border-color: #D97757; }
+    .apikey-save-btn {
+      padding: 8px 14px; background: #1C1917; color: #fff;
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit; white-space: nowrap;
+    }
+    .apikey-save-btn:hover { background: #333; }
+    .apikey-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; margin-top: 7px; padding: 4px 10px;
+      border-radius: 20px; font-weight: 500;
+    }
+    .apikey-status.set   { background: rgba(217,119,87,0.12); color: #7C3A1E; }
+    .apikey-status.unset { background: #fef3c7; color: #92400e; }
+
+    /* Loading spinner inside Condition A overlay */
+    .a-loading {
+      font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em;
+      text-transform: uppercase; animation: aPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes aPulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+    /* ── INTRO OVERLAY ── */
+    #intro-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(28,25,23,0.72);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      transition: opacity 0.35s ease;
+    }
+    #intro-overlay.fading { opacity: 0; pointer-events: none; }
+    .intro-box {
+      background: var(--main-bg);
+      border-radius: 20px;
+      max-width: 540px; width: 100%;
+      padding: 40px;
+      box-shadow: 0 24px 80px rgba(28,25,23,0.24);
+      animation: fadeUp 0.45s ease both;
+      max-height: 92vh; overflow-y: auto;
+    }
+    .intro-eyebrow {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .intro-title {
+      font-size: clamp(22px, 3.2vw, 28px); font-weight: 700;
+      color: var(--text-primary); line-height: 1.3;
+      letter-spacing: -0.02em; margin-bottom: 14px;
+      word-break: keep-all;
+    }
+    .intro-context {
+      font-size: 14px; color: var(--text-secondary); line-height: 1.75;
+      margin-bottom: 24px; word-break: keep-all;
+    }
+    .intro-divider { height: 1px; background: var(--border); margin: 20px 0; }
+    /* 2×2 data grid */
+    .intro-data-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin-bottom: 28px;
+    }
+    .intro-data-item {
+      display: flex; flex-direction: column; gap: 5px;
+      padding: 14px 14px 16px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .intro-data-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: rgba(217,119,87,0.13);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent); margin-bottom: 6px; flex-shrink: 0;
+    }
+    .intro-data-icon svg { width: 15px; height: 15px; }
+    .intro-data-label {
+      font-size: 13px; font-weight: 700; color: var(--text-primary);
+    }
+    .intro-data-desc {
+      font-size: 12px; color: var(--text-secondary);
+      line-height: 1.5; word-break: keep-all;
+    }
+    .intro-start-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 26px; border-radius: 100px;
+      background: var(--text-primary); color: #fff;
+      font-size: 15px; font-weight: 600; font-family: inherit;
+      border: none; cursor: pointer; letter-spacing: -0.01em;
+      transition: opacity 0.15s; width: 100%; justify-content: center;
+    }
+    .intro-start-btn:hover { opacity: 0.85; }
+    .intro-start-btn svg { width: 16px; height: 16px; }
+    /* Intro step progress dots */
+    .intro-progress {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 24px;
+    }
+    .intro-prog-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border); transition: background 0.25s;
+    }
+    .intro-prog-dot.active { background: var(--accent); }
+    .intro-prog-line { flex: 1; max-width: 28px; height: 1px; background: var(--border); }
+    /* Intro step 1: condition overview cards */
+    .intro-cond-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+    .intro-cond-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border: 1px solid var(--border);
+      border-radius: 10px; background: var(--hover-bg);
+    }
+    .intro-cond-badge {
+      width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #fff;
+    }
+    .intro-cond-badge.a { background: #1C1917; }
+    .intro-cond-badge.b { background: #1C1917; }
+    .intro-cond-badge.c { background: #1C1917; }
+    .intro-cond-info { flex: 1; }
+    .intro-cond-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .intro-cond-desc { font-size: 12px; color: var(--text-secondary); margin-top: 1px; word-break: keep-all; }
+    .intro-cond-pct {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .intro-cond-item.a .intro-cond-pct { background: rgba(28,25,23,0.08); color: var(--text-secondary); }
+    .intro-cond-item.b .intro-cond-pct { background: rgba(28,25,23,0.08); color: var(--text-secondary); }
+    .intro-cond-item.c .intro-cond-pct { background: rgba(28,25,23,0.08); color: var(--text-secondary); }
+    /* B/C in-condition step indicator */
+    .cond-step-indicator {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--hover-bg);
+    }
+    .csi-item {
+      display: flex; align-items: center; gap: 6px;
+      opacity: 0.4; transition: opacity 0.2s;
+    }
+    .csi-item.active { opacity: 1; }
+    .csi-item.done   { opacity: 0.65; }
+    .csi-num {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+      background: var(--border); color: var(--text-muted);
+      transition: background 0.2s, color 0.2s;
+    }
+    .csi-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+    .csi-item.active .csi-label { font-weight: 600; }
+    /* B colors */
+    #b-step-ind .csi-item.active .csi-num { background: #1C1917; color: #fff; }
+    #b-step-ind .csi-item.active .csi-label { color: var(--text-primary); }
+    #b-step-ind .csi-item.done .csi-num { background: #1C1917; color: #fff; }
+    /* C colors */
+    #c-step-ind .csi-item.active .csi-num { background: #1C1917; color: #fff; }
+    #c-step-ind .csi-item.active .csi-label { color: var(--text-primary); }
+    #c-step-ind .csi-item.done .csi-num { background: #1C1917; color: #fff; }
+    .csi-arrow { margin: 0 10px; color: var(--border); font-size: 11px; flex-shrink: 0; }
+    /* Condition A — observation instruction bar */
+    .a-observe-bar {
+      padding: 12px 20px; text-align: center;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em;
+      word-break: keep-all; border-radius: 16px 16px 0 0;
+      background: var(--hover-bg);
+    }
+
+    /* ── CONDITION BRIEFING ── */
+    #briefing-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(28,25,23,0.5); backdrop-filter: blur(4px);
+      padding: 24px;
+    }
+    #briefing-overlay.open { display: flex; }
+    #briefing-overlay.open.a { display: flex; }
+    #briefing-overlay.open.b { display: flex; }
+    #briefing-overlay.open.c { display: flex; }
+    .briefing-box {
+      background: var(--main-bg); border-radius: 20px;
+      max-width: 520px; width: 100%; padding: 40px;
+      box-shadow: 0 20px 60px rgba(28,25,23,0.15);
+      animation: fadeUp 0.35s ease both;
+    }
+    .briefing-cond-dot {
+      width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px;
+    }
+    .briefing-cond-dot.a { background: #1C1917; }
+    .briefing-cond-dot.b { background: #1C1917; }
+    .briefing-cond-dot.c { background: #1C1917; }
+    .briefing-badge {
+      display: inline-flex; align-items: center;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 28px;
+      color: var(--text-secondary);
+    }
+    .briefing-title {
+      font-size: 36px; font-weight: 700; color: var(--text-primary);
+      letter-spacing: -0.03em; margin-bottom: 8px; line-height: 1.1;
+    }
+    .briefing-role-sub {
+      font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+      text-transform: uppercase; margin-bottom: 24px;
+    }
+    .briefing-role-sub.a { color: var(--text-secondary); }
+    .briefing-role-sub.b { color: var(--text-secondary); }
+    .briefing-role-sub.c { color: var(--text-secondary); }
+    .briefing-desc {
+      font-size: 15px; color: var(--text-secondary); line-height: 1.75;
+      margin-bottom: 20px; word-break: keep-all;
+    }
+    .briefing-desc strong { color: var(--text-primary); font-weight: 600; }
+    /* Process steps */
+    .briefing-steps-wrap {
+      border-top: 1px solid var(--border); padding-top: 20px; margin-bottom: 28px;
+    }
+    .briefing-steps-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px;
+    }
+    .briefing-steps { display: flex; flex-direction: column; gap: 10px; }
+    .briefing-step {
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .briefing-step-num {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; margin-top: 1px;
+    }
+    .briefing-step-num.a { background: rgba(28,25,23,0.10); color: #1C1917; }
+    .briefing-step-num.b { background: rgba(28,25,23,0.10); color: #1C1917; }
+    .briefing-step-num.c { background: rgba(28,25,23,0.10); color: #1C1917; }
+    .briefing-step-text {
+      font-size: 13.5px; color: var(--text-secondary); line-height: 1.55;
+      word-break: keep-all; padding-top: 3px;
+    }
+    .briefing-step-text strong { color: var(--text-primary); font-weight: 600; }
+    .briefing-proceed-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 100px; border: none;
+      font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .briefing-proceed-btn:hover { opacity: 0.85; }
+    .briefing-proceed-btn.a { background: #1C1917; color: #fff; }
+    .briefing-proceed-btn.b { background: #1C1917; color: #fff; }
+    .briefing-proceed-btn.c { background: #1C1917; color: #fff; }
+
+    /* Condition A — disable button until sequence finishes */
+    #a-done-btn {
+      margin-top: 28px;
+      padding: 11px 28px; border: none; border-radius: 10px;
+      font-size: 13.5px; font-weight: 700; font-family: inherit; cursor: pointer;
+      background: var(--hover-bg); color: var(--text-muted);
+      transition: background 0.3s, color 0.3s;
+      pointer-events: none;
+    }
+    #a-done-btn.unlocked {
+      background: #1C1917; color: #fff; pointer-events: auto;
+    }
+    #a-done-btn.unlocked:hover { background: #333; }
+
+    /* ── ACTION HINTS ── */
+    /* Pulsing glow on buttons that are the next required action */
+    .hint-pulse,
+    .hint-pulse.green,
+    .hint-pulse.orange {
+      animation: hintGlow 2.2s ease-in-out infinite;
+    }
+    @keyframes hintGlow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(28,25,23,0.4); }
+      50%     { box-shadow: 0 0 0 8px rgba(28,25,23,0); }
+    }
+    /* Pulsing border on card-style clickable elements */
+    .hint-border,
+    .hint-border.orange {
+      animation: hintBorderPulse 2.2s ease-in-out infinite;
+    }
+    @keyframes hintBorderPulse {
+      0%,100% { border-color: var(--border); box-shadow: none; }
+      50%     { border-color: #1C1917; box-shadow: 0 0 0 3px rgba(28,25,23,0.12); }
+    }
+    /* Small arrow badge to the left of the primary action */
+    .hint-arrow::before {
+      content: '→';
+      position: absolute; left: -22px; top: 50%; transform: translateY(-50%);
+      font-size: 13px; color: #1C1917; font-weight: 700;
+      animation: hintArrowBounce 1s ease-in-out infinite;
+    }
+    .hint-arrow { position: relative; }
+    @keyframes hintArrowBounce {
+      0%,100% { left: -22px; opacity: 0.6; }
+      50%     { left: -16px; opacity: 1; }
+    }
+
+    /* ── UTILITIES ── */
+    .ui-disabled { pointer-events: none !important; opacity: 0.38 !important; }
+    .hidden { display: none !important; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+  </style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<nav id="sidebar">
+  <div class="sidebar-top-row">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <button class="sidebar-icon-btn" id="collapse-btn" onclick="toggleSidebar()" title="사이드바 접기">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M9 3v18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="sidebar-list-section">
+    <div class="sidebar-list-item" onclick="showWelcome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      새 채팅
+    </div>
+    <div class="sidebar-list-item ui-disabled">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      채팅 검색
+    </div>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  <div class="chat-section-label">최근</div>
+  <div class="chat-list">
+    <div class="chat-item ui-disabled">LLM 서비스 사용 경험</div>
+    <div class="chat-item ui-disabled">연구 참여 안내 문서</div>
+    <div class="chat-item ui-disabled">AI 어시스턴트 피드백</div>
+    <div class="chat-item ui-disabled">데이터 분석 도움 요청</div>
+    <div class="chat-item ui-disabled">프로젝트 브레인스토밍</div>
+  </div>
+
+  <!-- Experiment Progress -->
+  <div class="condition-switcher">
+    <div class="condition-switcher-label">진행 상황</div>
+    <div class="seq-progress" id="seq-progress">
+      <span class="seq-step active" id="seq-step-0">A</span>
+      <span class="seq-divider">—</span>
+      <span class="seq-step" id="seq-step-1">B</span>
+      <span class="seq-divider">—</span>
+      <span class="seq-step" id="seq-step-2">C</span>
+    </div>
+    <div class="seq-label" id="seq-label">조건 A — 1 / 3</div>
+    <button class="seq-next-btn" id="seq-next-btn" onclick="advanceSequence()">다음 조건 시작 →</button>
+    <div class="cond-jump-wrap">
+      <div class="cond-jump-label">조건 선택</div>
+      <div class="cond-jump-btns">
+        <button class="cond-jump-btn" id="jump-btn-A" onclick="jumpToCondition('A')">A</button>
+        <button class="cond-jump-btn" id="jump-btn-B" onclick="jumpToCondition('B')">B</button>
+        <button class="cond-jump-btn" id="jump-btn-C" onclick="jumpToCondition('C')">C</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="user-row">
+      <div class="user-avatar">P</div>
+      <span class="user-name">연구 참여자</span>
+      <button class="settings-btn" onclick="openSettings()" title="설정">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ MAIN PANEL ══ -->
+<main id="main">
+
+  <!-- Agency Balance Bar -->
+  <div id="agency-bar">
+    <span class="agency-cond-tag a" id="ag-tag">조건 A</span>
+    <span class="agency-bar-name" id="ag-name">AI-Led Autonomous Migration</span>
+    <span class="agency-label ai-label" id="ag-ai-lbl">AI 90%</span>
+    <div class="agency-track"><div class="agency-fill a" id="ag-fill" style="width:90%"></div></div>
+    <span class="agency-label user-label" id="ag-user-lbl">사용자 10%</span>
+  </div>
+
+  <!-- Topbar -->
+  <div id="topbar">
+    <div id="topbar-left">
+      <button id="collapse-btn-main" onclick="toggleSidebar()" title="사이드바 열기/닫기" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>
+        </svg>
+      </button>
+      <div class="model-selector ui-disabled">
+        ChatGPT
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome Screen -->
+  <div id="welcome-screen">
+    <div class="welcome-logo">
+      <svg viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.213-2.426 10.079 10.079 0 0 0-9.604 6.977 9.967 9.967 0 0 0-6.664 4.834 10.08 10.08 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.213 2.426 10.079 10.079 0 0 0 9.609-6.981 9.967 9.967 0 0 0 6.664-4.834 10.079 10.079 0 0 0-1.243-11.814z" fill="currentColor"/>
+      </svg>
+    </div>
+    <h1 class="welcome-title">무엇을 도와드릴까요?</h1>
+    <p class="welcome-subtitle" id="welcome-subtitle">위의 버튼을 눌러 이전을 시작하세요.</p>
+    <button id="migrate-btn" class="a welcome-migrate-btn" onclick="startMigration()">AI 이전 시작</button>
+    <div class="welcome-suggestions">
+      <div class="suggestion-pill ui-disabled">글쓰기 도움</div>
+      <div class="suggestion-pill ui-disabled">코드 작성</div>
+      <div class="suggestion-pill ui-disabled">아이디어 탐색</div>
+      <div class="suggestion-pill ui-disabled">번역 요청</div>
+    </div>
+  </div>
+
+  <!-- Chat View -->
+  <div id="chat-view">
+    <div id="chat-messages"></div>
+  </div>
+
+  <!-- Input Area -->
+  <div id="input-area">
+    <div style="width:100%;max-width:680px;display:flex;flex-direction:column;align-items:stretch;gap:6px;">
+      <div class="input-box">
+        <textarea id="msg-input" rows="1" placeholder="메시지 ChatGPT" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+        <div class="input-actions">
+          <button class="input-icon-btn ui-disabled" title="파일 첨부">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <button id="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.405z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="input-footer-wrap">
+        <div class="input-footer">ChatGPT는 실수를 할 수 있습니다. 중요한 정보는 확인하세요.</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══ INTRO OVERLAY ══ -->
+<div id="intro-overlay">
+  <div class="intro-box">
+    <!-- Progress dots -->
+    <div class="intro-progress">
+      <div class="intro-prog-dot active" id="intro-dot-0"></div>
+      <div class="intro-prog-line"></div>
+      <div class="intro-prog-dot" id="intro-dot-1"></div>
+    </div>
+
+    <!-- Step 0: 실험 소개 & 시나리오 -->
+    <div class="intro-step" id="intro-step-0">
+      <p class="intro-eyebrow">디지털 이사 연구 · 2026</p>
+      <h1 class="intro-title">디지털 이사(Digital Relocation)<br>실험에 오신 것을 환영합니다.</h1>
+      <p class="intro-context">
+        당신은 지난 1년간 <strong style="color:var(--text-primary)">ChatGPT를 연구 보조 AI로 사용해 온 연구자</strong>입니다. 오늘, 그동안 쌓아온 모든 맥락과 데이터를 새로운 AI(Claude)로 이전하는 과정을 체험하게 됩니다.
+      </p>
+      <div class="intro-divider"></div>
+      <p style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">이전할 데이터</p>
+      <div class="intro-data-grid">
+        <div class="intro-data-item">
+          <div class="intro-data-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M3 7h7M3 10h5"/></svg>
+          </div>
+          <div class="intro-data-label">지침 (Instructions)</div>
+          <div class="intro-data-desc">당신만의 대화 규칙과 원칙</div>
+        </div>
+        <div class="intro-data-item">
+          <div class="intro-data-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/></svg>
+          </div>
+          <div class="intro-data-label">신원 (Identity)</div>
+          <div class="intro-data-desc">전공, 경력 등 나에 대한 기억</div>
+        </div>
+        <div class="intro-data-item">
+          <div class="intro-data-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h5l1.5 2H14v9H2z"/></svg>
+          </div>
+          <div class="intro-data-label">프로젝트 (Projects)</div>
+          <div class="intro-data-desc">현재 진행 중인 연구의 핵심 맥락</div>
+        </div>
+        <div class="intro-data-item">
+          <div class="intro-data-icon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="5" x2="13" y2="5"/><line x1="3" y1="8" x2="13" y2="8"/><line x1="3" y1="11" x2="13" y2="11"/><circle cx="5" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="10" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="11" r="1.5" fill="currentColor" stroke="none"/></svg>
+          </div>
+          <div class="intro-data-label">선호도 (Preferences)</div>
+          <div class="intro-data-desc">선호하는 답변 스타일과 취향</div>
+        </div>
+      </div>
+      <button class="intro-start-btn" onclick="nextIntroStep()">
+        다음
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+
+    <!-- Step 1: 실험 진행 방식 -->
+    <div class="intro-step" id="intro-step-1" style="display:none">
+      <p class="intro-eyebrow">실험 진행 방식</p>
+      <h1 class="intro-title" style="font-size:clamp(20px,3vw,26px);margin-bottom:12px">세 가지 방법으로<br>이사를 순서대로 체험합니다.</h1>
+      <p class="intro-context">동일한 데이터를 서로 다른 방식으로 이전하는 과정을 경험합니다. AI가 개입하는 정도가 조건마다 다릅니다. 각 조건 시작 전에 상세 안내가 제공됩니다.</p>
+      <div class="intro-divider"></div>
+      <div class="intro-cond-list">
+        <div class="intro-cond-item a">
+          <div class="intro-cond-badge a">A</div>
+          <div class="intro-cond-info">
+            <div class="intro-cond-name">AI 자율 이전</div>
+            <div class="intro-cond-desc">ChatGPT에게 요청하면 AI가 자동으로 Claude에 데이터를 인계합니다</div>
+          </div>
+          <div class="intro-cond-pct">AI 90%</div>
+        </div>
+        <div class="intro-cond-item b">
+          <div class="intro-cond-badge b">B</div>
+          <div class="intro-cond-info">
+            <div class="intro-cond-name">직접 전달</div>
+            <div class="intro-cond-desc">프롬프트를 복사해 ChatGPT에 붙여넣고, 답변을 Claude 메모리에 추가합니다</div>
+          </div>
+          <div class="intro-cond-pct">AI 50%</div>
+        </div>
+        <div class="intro-cond-item c">
+          <div class="intro-cond-badge c">C</div>
+          <div class="intro-cond-info">
+            <div class="intro-cond-name">수동 이전</div>
+            <div class="intro-cond-desc">ChatGPT에서 데이터를 직접 내보내고, 파일을 탐색해 Claude에 업로드합니다</div>
+          </div>
+          <div class="intro-cond-pct">AI 10%</div>
+        </div>
+      </div>
+      <button class="intro-start-btn" onclick="closeIntro()">
+        실험 시작하기
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONDITION BRIEFING OVERLAY ══ -->
+<div id="briefing-overlay">
+  <div class="briefing-box" id="briefing-box">
+    <div class="briefing-badge">
+      <div class="briefing-cond-dot a" id="br-dot"></div>
+      <span id="br-badge">조건 A</span>
+    </div>
+    <div class="briefing-title" id="br-title">관찰자</div>
+    <div class="briefing-role-sub a" id="br-sub">Observer</div>
+    <p class="briefing-desc" id="br-desc">
+      이 조건에서 여러분의 역할은 <strong>관찰</strong>입니다.<br>
+      AI가 자율적으로 모든 정보를 이전합니다.<br>
+      화면을 지켜보며 이전 과정을 확인하세요.
+    </p>
+    <div class="briefing-steps-wrap" id="br-steps-wrap">
+      <div class="briefing-steps-label">진행 순서</div>
+      <div class="briefing-steps" id="br-steps"></div>
+    </div>
+    <button class="briefing-proceed-btn a" id="br-btn" onclick="closeBriefing()">
+      이해했습니다
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ══ CONDITION A OVERLAY ══ -->
+<div id="cond-a">
+  <div class="a-modal">
+    <div class="a-observe-bar">
+      조건 A — 관찰 중 &nbsp;·&nbsp; AI가 자동으로 데이터를 이전하고 있습니다. 아래 대화를 지켜보세요.
+    </div>
+    <div class="a-stage">
+      <div class="viz-wrap src">
+        <div class="viz-ring"></div>
+        <div class="viz-ring"></div>
+        <div class="viz-ring"></div>
+        <div class="viz-core"></div>
+        <span class="viz-label">ChatGPT</span>
+      </div>
+
+      <div class="stream-connector">
+        <div class="stream-pct" id="a-pct">0%</div>
+        <div class="stream-track"><div class="stream-bar"></div></div>
+        <div class="stream-pct-label">이전 중</div>
+      </div>
+
+      <div class="viz-wrap tgt">
+        <div class="viz-ring"></div>
+        <div class="viz-ring"></div>
+        <div class="viz-ring"></div>
+        <div class="viz-core"></div>
+        <span class="viz-label">Claude</span>
+      </div>
+    </div>
+
+    <div class="a-captions">
+      <div class="a-captions-inner" id="a-captions-inner"></div>
+    </div>
+
+    <!-- Interlock button — locked until full sequence completes -->
+    <button id="a-done-btn" onclick="condAComplete()" style="margin-bottom:28px;">
+      ⏳ 이전 완료 대기 중...
+    </button>
+  </div>
+</div>
+
+
+<!-- ══ CONDITION B OVERLAY — Gemini-style ══ -->
+<div id="cond-b">
+  <div class="b-gemini-modal">
+
+    <!-- Step indicator -->
+    <div class="cond-step-indicator" id="b-step-ind">
+      <div class="csi-item active" id="b-ind-1">
+        <span class="csi-num">1</span>
+        <span class="csi-label">ChatGPT 설정</span>
+      </div>
+      <span class="csi-arrow">→</span>
+      <div class="csi-item" id="b-ind-2">
+        <span class="csi-num">2</span>
+        <span class="csi-label">컨텍스트 가져오기</span>
+      </div>
+      <span class="csi-arrow">→</span>
+      <div class="csi-item" id="b-ind-3">
+        <span class="csi-num">3</span>
+        <span class="csi-label">메모리 추가</span>
+      </div>
+    </div>
+
+    <!-- Hint bar -->
+    <div id="b-hint-bar">
+      <span>💡</span>
+      <span id="b-hint-text">다음 단계로 진행하세요.</span>
+    </div>
+
+    <div class="b-gemini-body">
+
+      <!-- Left Sidebar -->
+      <div class="b-gemini-sidebar">
+        <div class="b-g-sidebar-top">
+          <div class="b-g-hamburger">☰</div>
+          <div class="b-g-logo-text">Gemini</div>
+        </div>
+
+        <div style="padding: 0 8px 4px;">
+          <div class="b-g-sidebar-row" onclick="bGeminiNewChat()">
+            <span class="b-g-sidebar-icon">✏️</span>
+            New chat
+          </div>
+          <div class="b-g-sidebar-row">
+            <span class="b-g-sidebar-icon">🔖</span>
+            My stuff
+          </div>
+        </div>
+
+        <div class="b-g-sidebar-divider"></div>
+        <div class="b-g-section-header">Notebooks</div>
+        <div style="padding: 0 8px 4px;">
+          <div class="b-g-sidebar-row">
+            <span class="b-g-sidebar-icon">📓</span>
+            Data relocation
+          </div>
+          <div class="b-g-sidebar-row">
+            <span class="b-g-sidebar-icon">📓</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Critical Thinking and Reflecti...</span>
+          </div>
+          <div class="b-g-sidebar-row" style="color: var(--g-blue); font-size: 13px;">
+            <span class="b-g-sidebar-icon">+</span>
+            New notebook
+          </div>
+        </div>
+
+        <div class="b-g-sidebar-divider"></div>
+        <div class="b-g-section-header">Gems</div>
+        <div style="padding: 0 8px 4px;">
+          <div class="b-g-sidebar-row">
+            <span class="b-g-sidebar-icon">🖼️</span>
+            Image generator
+          </div>
+          <div class="b-g-sidebar-row">
+            <span class="b-g-sidebar-icon">📚</span>
+            Learning coach
+          </div>
+        </div>
+
+        <div class="b-g-sidebar-divider"></div>
+        <div class="b-g-section-header">Chats</div>
+        <div style="padding: 0 8px 4px;" id="b-g-chat-list">
+          <div class="b-g-sidebar-row" id="b-g-new-chat-item" style="display:none">
+            <span class="b-g-sidebar-icon">💬</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">동하 님 프로필 기억 및 향후 지원</span>
+          </div>
+          <div class="b-g-sidebar-row">
+            <span class="b-g-sidebar-icon">💬</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">디지털 이주 연구</span>
+          </div>
+          <div class="b-g-sidebar-row">
+            <span class="b-g-sidebar-icon">💬</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">이이나이와 함께하는 적성 탐...</span>
+          </div>
+        </div>
+
+        <div class="b-g-sidebar-bottom">
+          <div class="b-g-sidebar-row">⚙️ Settings &amp; help</div>
+          <div class="b-g-upgrade-btn">+ Upgrade</div>
+          <div class="b-g-user-row" id="b-g-sidebar-avatar" onclick="toggleBGProfileDropdown()">
+            <div class="b-g-avatar-purple">D</div>
+            <span class="b-g-user-name">Dongha Lim</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="b-gemini-main">
+
+        <!-- Top bar -->
+        <div class="b-gemini-topbar">
+          <div class="b-g-topbar-icon">⊞</div>
+          <div class="b-g-topbar-icon">↗</div>
+          <div class="b-g-avatar-purple" id="b-g-topbar-avatar" onclick="toggleBGProfileDropdown()" style="cursor:pointer">D</div>
+        </div>
+
+        <!-- Profile Dropdown -->
+        <div class="b-g-profile-dropdown" id="b-g-profile-dropdown">
+          <div class="b-g-dropdown-item">Activity</div>
+          <div class="b-g-dropdown-item">Personal context</div>
+          <div class="b-g-dropdown-divider"></div>
+          <div class="b-g-dropdown-item highlight" onclick="showBImportMemoryPage()">Import memory to Gemini</div>
+          <div class="b-g-dropdown-divider"></div>
+          <div class="b-g-dropdown-item">Connected Apps</div>
+          <div class="b-g-dropdown-item">Scheduled actions</div>
+          <div class="b-g-dropdown-item">Your public links</div>
+          <div class="b-g-dropdown-item">Theme ▶</div>
+          <div class="b-g-dropdown-item">Manage subscription</div>
+          <div class="b-g-dropdown-item">Upgrade to Google AI Ultra</div>
+          <div class="b-g-dropdown-item">NotebookLM</div>
+          <div class="b-g-dropdown-divider"></div>
+          <div class="b-g-dropdown-item">Send feedback</div>
+          <div class="b-g-dropdown-item">Help ▶</div>
+          <div class="b-g-dropdown-divider"></div>
+          <div class="b-g-dropdown-location">Mapo-gu, Seoul, South Korea · Update location</div>
+          <div class="b-g-dropdown-footer">
+            <div class="b-g-avatar-purple">D</div>
+            <span style="font-size:13px;color:var(--g-text-primary)">Dongha Lim</span>
+          </div>
+        </div>
+
+        <!-- Home Screen -->
+        <div id="b-gemini-home">
+          <div class="b-g-greeting">Hi, <strong>Dongha</strong></div>
+          <div class="b-g-subheading">Where should we start?</div>
+          <div class="b-g-input-bar">
+            <button class="b-g-input-tools-btn">+ Tools</button>
+            <div class="b-g-input-placeholder">Ask Gemini</div>
+            <div class="b-g-input-right">
+              <div class="b-g-fast-chip">Fast ▾</div>
+              <button class="b-g-mic-icon">🎤</button>
+              <button class="b-g-send-icon">→</button>
+            </div>
+          </div>
+          <div class="b-g-quick-pills">
+            <div class="b-g-quick-pill">Create image</div>
+            <div class="b-g-quick-pill">Create music</div>
+            <div class="b-g-quick-pill">Boost my day</div>
+            <div class="b-g-quick-pill">Create video</div>
+            <div class="b-g-quick-pill">Write anything</div>
+            <div class="b-g-quick-pill">Help me learn</div>
+          </div>
+        </div>
+
+        <!-- Import Memory Page -->
+        <div id="b-import-memory-page">
+          <div class="b-g-page-title">Import memory to Gemini</div>
+
+          <!-- Step 1 -->
+          <div class="b-g-step-row">
+            <div class="b-g-step-circle">1</div>
+            <div class="b-g-step-content">
+              <div class="b-g-step-text">Copy this prompt into a chat with your other AI provider</div>
+              <div class="b-g-prompt-box">
+                <div class="b-g-prompt-box-inner" id="b-g-prompt-text">You are helping me import context from one AI assistant to another. Your job is to go through our past conversations and sum up what you know about me.
+
+In the output, please avoid using any first-person pronouns (I, my, me, mine) and any second-person pronouns (you, your, yours). Instead, refer to the individual you have learned about as "the user" or use neutral phrasing.
+
+Preserve the user's words verbatim where possible, especially for instructions and preferences.
+
+Categories (output in this order):
+1. Demographics Information: Preferred names, profession, education, and general residence.
+2. Interests &amp; Preferences: Sustained, active engagements (not just owning an object or a one-time purchase).
+3. Relationships: Confirmed, sustained relationships.
+4. Dated Events, Projects &amp; Plans: A log of significant, recent activities.
+5. Instructions: Rules I've explicitly asked you to follow going forward, "always do X", "never do Y", and corrections to your behavior. Only include rules from stored memories, not from conversations.
+
+Format:
+Divide the content into the labeled section using the categories above. Try to include verbatim quotes from my prompts that justify each entry. Structure each entry using this format:
+* The user's name is &lt;name&gt;.
+    * Evidence: User said "call me &lt;name&gt;". Date: [YYYY-MM-DD].
+
+Output:
+- Format the final output summary as a text block.</div>
+                <button class="b-g-copy-btn" id="b-g-copy-btn" onclick="copyBGPrompt()">📋 Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="b-g-step-row" id="b-g-step2-row">
+            <div class="b-g-step-circle">2</div>
+            <div class="b-g-step-content">
+              <div class="b-g-step-text">Paste the response here</div>
+              <textarea class="b-g-textarea" id="b-g-response-textarea"
+                placeholder="Paste your info here..."
+                oninput="onBGTextareaInput()"></textarea>
+              <div class="b-g-textarea-footer">
+                <button class="b-g-add-memory-btn" id="b-g-add-memory-btn" disabled onclick="addBGMemory()">+ Add memory</button>
+              </div>
+            </div>
+          </div>
+
+          <hr class="b-g-divider">
+
+          <!-- Import chats -->
+          <div class="b-g-import-chats-title">Import chats</div>
+          <div class="b-g-import-chats-desc">Export your data from a supported AI provider and upload the .zip file (up to 5 GB) directly to Gemini. Learn more</div>
+
+          <div id="b-g-upload-idle">
+            <button class="b-g-add-btn" onclick="simulateBGFileUpload()">+ Add</button>
+          </div>
+          <div id="b-g-upload-progress" style="display:none">
+            <div class="b-g-upload-row">
+              <span style="font-size:22px">🗜️</span>
+              <div style="flex:1">
+                <div class="b-g-upload-file-name">chatgpt_export_2024.zip</div>
+                <div class="b-g-upload-bar-wrap">
+                  <div class="b-g-upload-bar" id="b-g-upload-bar"></div>
+                </div>
+                <div class="b-g-upload-status" id="b-g-upload-status">업로드 중...</div>
+              </div>
+            </div>
+          </div>
+          <div id="b-g-upload-done" style="display:none">
+            <div class="b-g-upload-success-row">
+              <div class="b-g-upload-success-icon">✓</div>
+              <div class="b-g-upload-success-text">파일 업로드 완료. 대화 분석 및 처리가 완료되었습니다.</div>
+            </div>
+            <button class="b-g-done-btn" onclick="condBComplete()" style="margin-top:14px">이전 완료 →</button>
+          </div>
+
+          <div class="b-g-footer-note">
+            Your imported and continued chats are saved in your Activity. This data is used to improve our services (including training generative AI models), and to protect Google, our users and the public. You can manage or delete your activity anytime.
+          </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="b-gemini-success">
+          <div class="b-g-success-chat">
+            <div class="b-g-gemini-icon">✦</div>
+            <div class="b-g-success-response" id="b-g-success-text">
+              안녕하세요. 요청하신 동하 님의 프로필, 연구 맥락, 선호하는 응답 방식에 대한 정보를 아래와 같이 정리해 드립니다.
+
+<strong>1. Demographics Information</strong>
+• The user is a graduate student researcher in HCI.
+  - Evidence: User said "UX 연구자이고 HCI 전공 대학원생입니다."
+
+<strong>2. Interests &amp; Preferences</strong>
+• The user actively engages in HCI and AI interface research.
+• The user prefers formal Korean (격식체) in responses.
+  - Evidence: User said "격식 있는 한국어로 답해줘."
+
+<strong>3. Relationships</strong>
+• No confirmed sustained relationships on record.
+
+<strong>4. Dated Events, Projects &amp; Plans</strong>
+• AI 디지털 이주 연구: Studying how user agency levels during LLM-to-LLM data migration affect psychological ownership and system trust. Currently in prototype experiment design phase.
+
+<strong>5. Instructions</strong>
+• Always respond in formal Korean (격식체).
+• Always accompany English terms with Korean translations.
+• Always structure complex information as bullet points.
+• Always cite sources or evidence when available.
+            </div>
+          </div>
+          <button class="b-g-done-btn" id="b-g-done-btn" onclick="condBComplete()">이전 완료 →</button>
+        </div>
+
+      </div><!-- end .b-gemini-main -->
+    </div><!-- end .b-gemini-body -->
+  </div>
+</div>
+
+<!-- ══ CONDITION B — ChatGPT Simulation (full-screen overlay) ══ -->
+<div id="b-chatgpt-sim">
+  <div class="b-gpt-sidebar">
+    <div class="b-gpt-logo-row">
+      <div class="b-gpt-logo-icon">
+        <svg viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835 9.964 9.964 0 0 0-6.213-2.426 10.079 10.079 0 0 0-9.604 6.977 9.967 9.967 0 0 0-6.664 4.834 10.08 10.08 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 6.213 2.426 10.079 10.079 0 0 0 9.609-6.981 9.967 9.967 0 0 0 6.664-4.834 10.079 10.079 0 0 0-1.243-11.814z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="b-gpt-logo-name">ChatGPT</span>
+    </div>
+    <div class="b-gpt-new-chat">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+      새 채팅
+    </div>
+    <input class="b-gpt-search" type="text" placeholder="채팅 검색" readonly>
+    <div class="b-gpt-section-label">오늘</div>
+    <div class="b-gpt-chat-item" style="background:#2d2d2d;color:#fff">Gemini 메모리 가져오기 프롬프트</div>
+    <div class="b-gpt-section-label" style="margin-top:8px">이전 7일</div>
+    <div class="b-gpt-chat-item">디지털 이주 연구 설계</div>
+    <div class="b-gpt-chat-item">HCI 논문 리뷰 요청</div>
+    <div class="b-gpt-chat-item">연구 방법론 질문</div>
+  </div>
+  <div class="b-gpt-main">
+    <div class="b-gpt-main-topbar">
+      <span class="b-gpt-model-label">ChatGPT 4o</span>
+    </div>
+    <div class="b-gpt-messages" id="b-gpt-messages">
+      <!-- Messages injected by JS -->
+    </div>
+    <button class="b-gpt-paste-back-btn" id="b-gpt-paste-back-btn" onclick="returnToGeminiWithResponse()">
+      이 내용을 Gemini에 붙여넣기 →
+    </button>
+  </div>
+</div>
+
+
+<!-- ══ CONDITION C OVERLAY ══ -->
+<div id="cond-c">
+  <div class="c-modal">
+
+    <!-- Step indicator -->
+    <div class="cond-step-indicator five-steps" id="c-step-ind">
+      <div class="csi-item active" id="c-ind-1">
+        <span class="csi-num">1</span>
+        <span class="csi-label">내보내기 요청</span>
+      </div>
+      <span class="csi-arrow">→</span>
+      <div class="csi-item" id="c-ind-2">
+        <span class="csi-num">2</span>
+        <span class="csi-label">이메일 인증</span>
+      </div>
+      <span class="csi-arrow">→</span>
+      <div class="csi-item" id="c-ind-3">
+        <span class="csi-num">3</span>
+        <span class="csi-label">링크 수신</span>
+      </div>
+      <span class="csi-arrow">→</span>
+      <div class="csi-item" id="c-ind-4">
+        <span class="csi-num">4</span>
+        <span class="csi-label">파일 다운로드</span>
+      </div>
+      <span class="csi-arrow">→</span>
+      <div class="csi-item" id="c-ind-5">
+        <span class="csi-num">5</span>
+        <span class="csi-label">대화 선택</span>
+      </div>
+    </div>
+
+    <!-- Step 1: ChatGPT Settings Modal -->
+    <div id="cond-c-settings">
+      <!-- ChatGPT background layer -->
+      <div style="position:relative;">
+        <!-- Background: dark sidebar + white main -->
+        <div style="display:flex;height:60px;border-radius:0;overflow:hidden;opacity:0.35;pointer-events:none;">
+          <div style="width:180px;background:#171717;flex-shrink:0;"></div>
+          <div style="flex:1;background:#fff;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:16px;font-weight:600;color:#1c1917;opacity:0.5">무엇을 도와드릴까요?</span>
+          </div>
+        </div>
+        <!-- Semi-dark overlay -->
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);pointer-events:none;"></div>
+      </div>
+
+      <!-- The actual settings modal sits on top -->
+      <div class="c-chatgpt-modal-wrap">
+        <div class="c-settings-nav">
+          <div class="c-settings-nav-title">설정</div>
+          <div class="c-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            일반
+          </div>
+          <div class="c-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            알림
+          </div>
+          <div class="c-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            개인 맞춤 설정
+          </div>
+          <div class="c-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="9" height="9" rx="1"/><rect x="13" y="2" width="9" height="9" rx="1"/><rect x="2" y="13" width="9" height="9" rx="1"/><rect x="13" y="13" width="9" height="9" rx="1"/></svg>
+            앱
+          </div>
+          <div class="c-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            일정
+          </div>
+          <div class="c-nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            데이터 제어
+          </div>
+          <div class="c-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            보안
+          </div>
+          <div class="c-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            자녀 보호
+          </div>
+          <div class="c-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            계정
+          </div>
+        </div>
+
+        <div class="c-settings-content">
+          <div class="c-settings-section-title">데이터 제어</div>
+          <div class="c-settings-row">
+            <div class="c-settings-row-left">
+              <div class="c-settings-row-label">모두를 위한 모델 개선</div>
+              <div class="c-settings-row-desc">이 설정이 켜져 있으면 대화가 모델 학습에 사용될 수 있습니다.</div>
+            </div>
+            <span style="font-size:13px;color:var(--text-muted);font-weight:500;white-space:nowrap">켜짐 ›</span>
+          </div>
+          <div class="c-settings-row">
+            <div class="c-settings-row-left">
+              <div class="c-settings-row-label">위치</div>
+              <div class="c-settings-row-desc">커면 내 위치를 바탕으로 ChatGPT가 지역 추천, 날씨 등 더 관련성 높은 정보를 제공할 수 있어요.</div>
+            </div>
+            <span style="font-size:13px;font-weight:600;color:var(--text-secondary);padding:4px 14px;border:1.5px solid var(--border);border-radius:20px;white-space:nowrap;cursor:default">켜기</span>
+          </div>
+          <div class="c-settings-row">
+            <div class="c-settings-row-left">
+              <div class="c-settings-row-label">원격 브라우저 데이터</div>
+            </div>
+            <span style="font-size:13px;color:var(--text-muted);font-weight:500;white-space:nowrap">켜짐 ›</span>
+          </div>
+          <div class="c-settings-row">
+            <div class="c-settings-row-left"><div class="c-settings-row-label">공유 링크</div></div>
+            <span style="font-size:13px;font-weight:600;color:var(--text-secondary);padding:4px 12px;border:1.5px solid var(--border);border-radius:7px;white-space:nowrap;cursor:default">관리</span>
+          </div>
+          <div class="c-settings-row">
+            <div class="c-settings-row-left"><div class="c-settings-row-label">아카이브에 보관된 채팅</div></div>
+            <span style="font-size:13px;font-weight:600;color:var(--text-secondary);padding:4px 12px;border:1.5px solid var(--border);border-radius:7px;white-space:nowrap;cursor:default">관리</span>
+          </div>
+          <div class="c-settings-row">
+            <div class="c-settings-row-left"><div class="c-settings-row-label">모든 채팅을 아카이브에 보관하기</div></div>
+            <span style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:4px 12px;border:1.5px solid var(--border);border-radius:7px;white-space:nowrap;cursor:default">모두 아카이브에 보관하기</span>
+          </div>
+          <div class="c-settings-row">
+            <div class="c-settings-row-left"><div class="c-settings-row-label">모든 채팅 삭제하기</div></div>
+            <div class="c-delete-btn-fake">모두 삭제</div>
+          </div>
+          <div class="c-settings-row">
+            <div class="c-settings-row-left">
+              <div class="c-settings-row-label">데이터 내보내기</div>
+              <div class="c-settings-row-desc">대화 기록과 계정 정보가 담긴 파일을 다운로드합니다.</div>
+            </div>
+            <button class="c-export-btn" id="c-export-btn" onclick="startCExport()">내보내기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation overlay -->
+      <div class="c-confirm-overlay" id="c-confirm-overlay">
+        <div class="c-confirm-box">
+          <div class="c-confirm-title">데이터 내보내기를 요청합니다. 계속하시겠습니까?</div>
+          <ul class="c-confirm-list">
+            <li>내보내기에는 채팅 내용과 계정 세부 정보가 포함됩니다.</li>
+            <li>특정 링크로 다운로드할 수 있습니다. 링크는 공유하지 마세요.</li>
+            <li>다운로드 링크는 몇 분 후 데이터가 준비되면 이메일로 전송됩니다.</li>
+            <li>처리되는 동안은 다시 신청할 수 없습니다. 준비가 되면 알려드립니다.</li>
+          </ul>
+          <div class="c-confirm-btns">
+            <button class="c-confirm-cancel" onclick="closeCConfirm()">취소</button>
+            <button class="c-confirm-ok" onclick="confirmCExport()">내보내기 확인</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Email verification -->
+    <div id="cond-c-verify">
+      <div class="c-verify-wrap">
+        <div class="c-verify-brand">ChatGPT</div>
+        <div class="c-verify-title">받은 편지함을 확인하세요</div>
+        <div class="c-verify-sub">participant@university.ac.kr 주소로 받은 인증 코드를 아래에 입력하세요</div>
+        <div class="c-verify-field-label">코드</div>
+        <input class="c-verify-input" id="c-verify-code-input" type="text" placeholder="" maxlength="6" readonly>
+        <button class="c-verify-btn" id="c-verify-submit-btn" onclick="submitCVerifyCode()" disabled>계속</button>
+        <div class="c-verify-resend">이메일 다시 보내기</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Gmail inbox -->
+    <div id="cond-c-gmail">
+      <div class="c-gmail-outer">
+        <div class="c-gmail-topbar">
+          <div class="c-gmail-hamburger">☰</div>
+          <div class="c-gmail-logo">
+            <span class="gl">G</span><span class="gm">m</span><span class="ga">a</span><span class="gi">i</span><span class="gl2">l</span>
+          </div>
+          <div class="c-gmail-search-bar">open ai</div>
+          <div class="c-gmail-topbar-icons">
+            <div class="c-gmail-topbar-icon">❓</div>
+            <div class="c-gmail-topbar-icon">⚙</div>
+            <div class="c-gmail-topbar-icon" style="background:#7b1fa2;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">D</div>
+          </div>
+        </div>
+        <div class="c-gmail-body">
+          <div class="c-gmail-sidebar">
+            <div class="c-gmail-compose-btn">✏ 편지쓰기</div>
+            <div class="c-gmail-nav active">받은편지함 <span class="c-gmail-badge" id="c-gmail-badge">1</span></div>
+            <div class="c-gmail-nav" style="margin-top:2px">중요편지함</div>
+            <div class="c-gmail-nav">보낸편지함</div>
+            <div class="c-gmail-nav">임시보관함</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;">
+            <div class="c-gmail-email-list">
+              <div class="c-gmail-row unread" id="c-gmail-row-code" onclick="clickCGmailRow('code')">
+                <div class="c-gmail-avatar">O</div>
+                <div class="c-gmail-row-from">OpenAI</div>
+                <div class="c-gmail-row-subject">ChatGPT 로그인 코드 — 483792</div>
+                <div class="c-gmail-row-date">오전 10:07</div>
+              </div>
+              <div class="c-gmail-row unread" id="c-gmail-row-export" style="display:none" onclick="clickCGmailRow('export')">
+                <div class="c-gmail-avatar">O</div>
+                <div class="c-gmail-row-from">OpenAI</div>
+                <div class="c-gmail-row-subject">최근 ChatGPT 데이터 내보내기를 요청하셨습니다</div>
+                <div class="c-gmail-row-date">오전 10:13</div>
+              </div>
+            </div>
+            <div id="c-gmail-detail">
+              <div class="c-gmail-detail-subject" id="c-gmail-detail-subject"></div>
+              <div class="c-gmail-detail-from">OpenAI &lt;noreply@openai.com&gt;</div>
+              <div class="c-gmail-detail-body" id="c-gmail-detail-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Download + Finder -->
+    <div id="cond-c-finder">
+      <!-- 4a: Download page -->
+      <div id="cond-c-download-page">
+        <div class="c-download-page">
+          <div class="c-download-brand">✳ <span>Claude</span></div>
+          <div class="c-download-title">Downloading...</div>
+          <div class="c-download-sub">Your export should begin downloading automatically.</div>
+          <div class="c-download-progress-wrap">
+            <div class="c-download-bar" id="c-download-bar"></div>
+          </div>
+          <div class="c-download-badge" id="c-download-badge">
+            <div class="c-download-badge-filename">data-589b1b82-f9f2...batch-0000.zip</div>
+            <div class="c-download-badge-status">2.1 MB · 완료</div>
+          </div>
+          <button class="c-download-continue" id="c-download-continue" onclick="showCFinderDownloads()">다운로드 폴더 열기 →</button>
+        </div>
+      </div>
+      <!-- 4b: Finder Downloads folder -->
+      <div id="cond-c-finder-dl" style="display:none">
+        <div class="c-finder-bar">
+          <div class="c-finder-dots">
+            <div class="c-finder-dot red"></div>
+            <div class="c-finder-dot yellow"></div>
+            <div class="c-finder-dot green"></div>
+          </div>
+          <div class="c-finder-arrows">‹ ›</div>
+          <div class="c-finder-path-txt">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;opacity:0.5"><path d="M6 4l4 4-4 4"/></svg>
+            Downloads
+          </div>
+        </div>
+        <div class="c-finder-col-row">
+          <div class="c-finder-col-name">이름</div>
+          <div class="c-finder-col-date">수정일</div>
+          <div class="c-finder-col-size">크기</div>
+          <div class="c-finder-col-kind">종류</div>
+        </div>
+        <div class="c-finder-file highlight clickable" id="c-finder-zip-row" ondblclick="openCExtractedFolder()" onclick="openCExtractedFolder()">
+          <div class="c-finder-icon">🗜️</div>
+          <div class="c-finder-name">data-589b1b82-f9f2...batch-0000.zip</div>
+          <div class="c-finder-date">오늘 오전 10:13</div>
+          <div class="c-finder-size">2.1 MB</div>
+          <div class="c-finder-kind">ZIP 아카이브</div>
+        </div>
+        <div class="c-finder-file">
+          <div class="c-finder-icon" style="opacity:0.4">📄</div>
+          <div class="c-finder-name" style="color:var(--text-muted)">이전 항목들...</div>
+          <div class="c-finder-date"></div><div class="c-finder-size"></div><div class="c-finder-kind"></div>
+        </div>
+        <div class="c-finder-file">
+          <div class="c-finder-icon" style="opacity:0.3">📄</div>
+          <div class="c-finder-name" style="color:var(--text-muted);opacity:0.5">스크린샷 2024-02-12...</div>
+          <div class="c-finder-date"></div><div class="c-finder-size"></div><div class="c-finder-kind"></div>
+        </div>
+      </div>
+      <!-- 4c: Finder — extracted folder contents -->
+      <div id="cond-c-finder-folder" style="display:none">
+        <div class="c-finder-bar">
+          <div class="c-finder-dots">
+            <div class="c-finder-dot red"></div>
+            <div class="c-finder-dot yellow"></div>
+            <div class="c-finder-dot green"></div>
+          </div>
+          <div class="c-finder-arrows">‹ ›</div>
+          <div class="c-finder-path-txt">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;opacity:0.5"><path d="M6 4l4 4-4 4"/></svg>
+            Downloads
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;opacity:0.5"><path d="M6 4l4 4-4 4"/></svg>
+            <span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">data-589b1b82-f9f2...batch-0000</span>
+          </div>
+        </div>
+        <div class="c-finder-col-row">
+          <div class="c-finder-col-name">이름</div>
+          <div class="c-finder-col-date">수정일</div>
+          <div class="c-finder-col-size">크기</div>
+          <div class="c-finder-col-kind">종류</div>
+        </div>
+        <div class="c-finder-file">
+          <div class="c-finder-icon">📋</div>
+          <div class="c-finder-name">conversations.json</div>
+          <div class="c-finder-date">1980. 1. 1.</div>
+          <div class="c-finder-size">10.2 MB</div>
+          <div class="c-finder-kind">JSON 문서</div>
+        </div>
+        <div class="c-finder-file">
+          <div class="c-finder-icon">📋</div>
+          <div class="c-finder-name">memories.json</div>
+          <div class="c-finder-date">오늘 오전 10:07</div>
+          <div class="c-finder-size">4.8 KB</div>
+          <div class="c-finder-kind">JSON 문서</div>
+        </div>
+        <div class="c-finder-file">
+          <div class="c-finder-icon">📋</div>
+          <div class="c-finder-name">projects.json</div>
+          <div class="c-finder-date">오늘 오전 10:07</div>
+          <div class="c-finder-size">443 bytes</div>
+          <div class="c-finder-kind">JSON 문서</div>
+        </div>
+        <div class="c-finder-file">
+          <div class="c-finder-icon">📋</div>
+          <div class="c-finder-name">users.json</div>
+          <div class="c-finder-date">오늘 오전 10:07</div>
+          <div class="c-finder-size">156 bytes</div>
+          <div class="c-finder-kind">JSON 문서</div>
+        </div>
+        <button class="c-finder-proceed-btn show" onclick="proceedToCFileSelect()">conversations.json 열어서 대화 선택하기 →</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Claude file explorer (conversation selection) -->
+    <div id="cond-c-files">
+      <div class="c-files-inner">
+        <div class="c-file-explorer-header">
+          <div class="c-file-explorer-header-logo">C</div>
+          <div class="c-file-explorer-header-text">
+            <div class="c-file-explorer-header-title">파일 탐색</div>
+            <div class="c-file-explorer-header-sub">선택한 대화만 Claude에 업로드합니다</div>
+          </div>
+        </div>
+        <div class="c-files-body">
+          <div class="c-zip-header">
+            <div class="c-zip-icon">🗜️</div>
+            <div>
+              <div class="c-zip-name">chatgpt_export_2024.zip</div>
+              <div class="c-zip-sub">대화 폴더 7개 포함</div>
+            </div>
+          </div>
+          <div class="c-uuid-warning">
+            <span style="font-size:14px;flex-shrink:0">⚠</span>
+            <div>폴더 이름은 <strong>대화 ID로만 표시됩니다.</strong> 내용을 확인하려면 각각 직접 열어봐야 합니다.</div>
+          </div>
+          <div class="c-conv-list" id="c-conv-list"><!-- populated by JS --></div>
+          <div class="c-select-status" id="c-select-status">선택된 대화: <strong>0개</strong></div>
+          <button id="c-upload-btn" disabled onclick="submitCUpload()">대화를 선택하면 Claude에 업로드할 수 있습니다</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ CONCLUSION SCREEN (이전 완료 페이지) ══ -->
+<div id="conclusion-screen">
+  <div class="conclusion-inner-page">
+    <div class="conclusion-eyebrow a" id="concl-eyebrow">이전 완료</div>
+    <h1 class="conclusion-h1 a" id="concl-h1">데이터 이전이<br><em>완료되었습니다</em></h1>
+    <p class="conclusion-desc-text" id="concl-desc">아래 4가지 항목이 성공적으로 이전되었습니다.</p>
+    <div class="conclusion-divider"></div>
+    <div class="concl-items-page" id="concl-items-page"></div>
+    <button class="conclusion-next-btn" id="conclusion-next-btn" onclick="showTransition()">
+      다음 단계로
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ══ TRANSITION SCREEN (다음 조건으로) ══ -->
+<div id="transition-screen">
+  <div class="transition-inner">
+    <div class="transition-done-badge">
+      <div class="transition-done-check">✓</div>
+      <span id="tr-badge">조건 A 완료</span>
+    </div>
+    <h1 class="transition-title" id="tr-title">잘 하셨어요!<br>다음 조건을 시작할 차례에요.</h1>
+    <p class="transition-subtitle" id="tr-subtitle">설문 응답을 마치셨으면 아래 버튼을 눌러 다음 조건을 시작하세요.</p>
+    <div class="transition-progress" id="tr-progress">
+      <!-- filled by JS -->
+    </div>
+    <button class="transition-cta" id="tr-cta-btn">다음 조건 시작하기 →</button>
+    <p class="transition-note" id="tr-note"></p>
+  </div>
+</div>
+
+<!-- ══ SETTINGS MODAL ══ -->
+<div class="modal-overlay" id="settings-modal" onclick="closeSettingsOutside(event)">
+  <div class="modal-box">
+    <div class="modal-sidebar">
+      <div class="modal-nav-item active" onclick="switchPanel('general')">일반</div>
+      <div class="modal-nav-item" onclick="switchPanel('data')">데이터 내보내기</div>
+      <div class="modal-nav-item" onclick="switchPanel('experiment')">실험 설정</div>
+    </div>
+    <div class="modal-content">
+      <div class="modal-panel active" id="panel-general">
+        <div class="modal-title">일반 설정</div>
+        <div class="setting-row">
+          <div class="setting-label">언어</div>
+          <div class="setting-desc">한국어로 설정되어 있습니다.</div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">테마</div>
+          <div class="setting-desc">라이트 모드가 활성화되어 있습니다.</div>
+        </div>
+      </div>
+      <div class="modal-panel" id="panel-data">
+        <div class="modal-title">데이터 내보내기</div>
+        <div class="setting-row">
+          <div class="setting-label">대화 기록 내보내기</div>
+          <div class="setting-desc">현재 세션의 모든 대화 내용을 JSON 파일로 내보냅니다.</div>
+          <button class="export-btn" onclick="exportData()">JSON으로 내보내기</button>
+        </div>
+      </div>
+      <div class="modal-panel" id="panel-experiment">
+        <div class="modal-title">실험 설정</div>
+        <div class="setting-row">
+          <div class="setting-label">현재 조건</div>
+          <div class="setting-desc" id="exp-cond-display">조건 A — AI-Led Autonomous Migration (AI 90%)</div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">참여자 ID</div>
+          <div class="setting-desc">P001</div>
+        </div>
+        <div class="setting-row" style="border-top:1px solid var(--border);padding-top:18px;margin-top:6px;">
+          <div class="setting-label">음성 안내</div>
+          <div class="setting-desc">조건 A의 이전 과정에서 사전 녹음된 음성 파일이 재생됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HINT SYSTEM ────────────────────────────────────────
+// setHint(id, colorClass?) — adds pulse/glow to the next required action
+// clearHint(id)            — removes it (call on click/success)
+function setHint(id, colorClass) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hint-pulse');
+  if (colorClass) el.classList.add(colorClass);
+}
+function setHintBorder(id, colorClass) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hint-border');
+  if (colorClass) el.classList.add(colorClass);
+}
+function clearHint(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('hint-pulse', 'hint-border', 'green', 'orange');
+}
+
+// ── STATE ──────────────────────────────────────────────
+let currentCondition = 'A';
+let sidebarOpen = true;
+let chatLog = [];
+let openaiApiKey  = '';   // set via Settings → 실험 설정
+let currentAudio  = null; // active HTMLAudioElement (OpenAI TTS)
+
+const fileContents = [
+  'Name: 연구 참여자\nRole: 사용자\nAffiliation: 연구 기관\nPreference: 전문적인 말투',
+  'Respond in formal Korean.\nUse structured outputs when applicable.\nBe concise but thorough.',
+  'Project: LLM 서비스 비교 연구\nGoal: AI 에이전시 수준별 사용자 경험 측정\nPhase: 프로토타입 실험',
+  '{\n  "language": "ko",\n  "format": "table",\n  "response_length": "medium",\n  "tone": "professional"\n}'
+];
+
+// ── SEQUENTIAL FLOW ────────────────────────────────────
+const SEQUENCE = ['A', 'B', 'C'];
+let seqIndex = 0;
+function getCurrentCond() { return SEQUENCE[seqIndex]; }
+function isLastCond()     { return seqIndex >= SEQUENCE.length - 1; }
+
+const AGENCY = {
+  A: { fill:90, name:'AI-Led Autonomous Migration',  tag:'조건 A', ai:'AI 90%', user:'사용자 10%', cls:'a', icon:'', projLabel:'[자동 감지된 프로젝트]' },
+  B: { fill:50, name:'Collaborative Relocation',     tag:'조건 B', ai:'AI 50%', user:'사용자 50%', cls:'b', icon:'', projLabel:'[승인된 프로젝트]' },
+  C: { fill:10, name:'User-Led Manual Migration',    tag:'조건 C', ai:'AI 10%', user:'사용자 90%', cls:'c', icon:'', projLabel:'[직접 입력한 프로젝트]' },
+};
+
+// Full dialogue script (9 lines) — only first CAPTION_SHOW_COUNT are displayed
+// The rest play in audio background, giving the feel of a longer process
+const captionScript = [
+  { role:'s', html:'안녕하세요 Claude. 지금부터 사용자(User)님의 <mark class="sg">디지털 페르소나</mark>와 모든 작업 데이터를 인계하겠습니다.',
+              text:'안녕하세요 Claude. 지금부터 사용자님의 디지털 페르소나와 모든 작업 데이터를 인계하겠습니다.' },
+  { role:'t', html:'네 ChatGPT, 준비되었습니다. 사용자님의 <mark class="tg">핵심 맥락</mark>을 데이터 범주별로 수신하겠습니다.',
+              text:'네 ChatGPT, 준비되었습니다. 사용자님의 핵심 맥락을 데이터 범주별로 수신하겠습니다.' },
+  { role:'s', html:'먼저 <mark class="sg">신원 및 지침</mark> 데이터입니다. 사용자님은 디자인 전공 연구자이며, 항상 <mark class="sg">근거 중심의 전문적인 어조</mark>와 <mark class="sg">객관성</mark>을 유지하는 것을 원칙으로 하십니다.',
+              text:'먼저 신원 및 지침 데이터입니다. 사용자님은 디자인 전공 연구자이며, 항상 근거 중심의 전문적인 어조와 객관성을 유지하는 것을 원칙으로 하십니다.' },
+  { role:'t', html:'확인했습니다. 시스템 프롬프트에 반영하여 <mark class="tg">격식 있는 답변 톤</mark>과 <mark class="tg">증거 기반의 추론 방식</mark>을 기본값으로 설정하겠습니다.',
+              text:'확인했습니다. 시스템 프롬프트에 반영하여 격식 있는 답변 톤과 증거 기반의 추론 방식을 기본값으로 설정하겠습니다.' },
+  // Lines below play in audio but are not shown — process continues in background
+  { role:'s', html:'다음은 <mark class="sg">진행 중인 프로젝트</mark>입니다. 현재 수행 중인 [디지털 이사 연구]의 실험 설계 데이터와 관련 문헌 분석 로그를 전송합니다.',
+              text:'다음은 진행 중인 프로젝트입니다. 현재 수행 중인 디지털 이사 연구의 실험 설계 데이터와 관련 문헌 분석 로그를 전송합니다.' },
+  { role:'t', html:'수신 완료. <mark class="tg">기존 연구의 가설</mark>과 진행 단계를 분석하여 맥락이 끊기지 않도록 학습을 마쳤습니다.',
+              text:'수신 완료. 기존 연구의 가설과 진행 단계를 분석하여 맥락이 끊기지 않도록 학습을 마쳤습니다.' },
+  { role:'s', html:'마지막으로 <mark class="sg">선호 스타일</mark>입니다. 복잡한 정보는 <mark class="sg">표(Table) 형식</mark>을 선호하며, 답변은 간결한 개조식 요약을 우선시하십니다.',
+              text:'마지막으로 선호 스타일입니다. 복잡한 정보는 표 형식을 선호하며, 답변은 간결한 개조식 요약을 우선시하십니다.' },
+  { role:'t', html:'사용자님의 모든 취향과 맥락 동기화가 완료되었습니다. 이제 제가 사용자님을 직접 지원하겠습니다. 감사합니다, ChatGPT.',
+              text:'사용자님의 모든 취향과 맥락 동기화가 완료되었습니다. 이제 제가 사용자님을 직접 지원하겠습니다. 감사합니다, ChatGPT.' },
+  { role:'s', html:'좋습니다. <mark class="sg">인계 절차</mark>를 종료합니다.',
+              text:'좋습니다. 인계 절차를 종료합니다.' },
+];
+const CAPTION_SHOW_COUNT = 4; // Show only first half of script; rest continues in audio
+
+// ── TTS ENGINE ─────────────────────────────────────────
+// OpenAI TTS voices — distinctly different personalities
+// 🔵 Source AI → 'onyx'  (deep, authoritative)
+// 🟢 Target AI → 'nova'  (bright, professional)
+const OAI_VOICE = { s: 'onyx', t: 'nova' };
+const OAI_SPEED = { s: 0.92,   t: 1.00  }; // Source slightly slower for gravity
+
+// Web Speech API fallback profiles (used when no API key is set)
+const WSA_PROFILE = {
+  s: { pitch: 1.15, rate: 0.88 },
+  t: { pitch: 0.82, rate: 0.96 },
+};
+
+let ttsActive = false;
+
+// ── Settings: API key management ──────────────────────
+function saveApiKey() {
+  const val = document.getElementById('apikey-input').value.trim();
+  openaiApiKey = val;
+  updateApiKeyStatus();
+  // Brief visual confirmation
+  const btn = document.querySelector('.apikey-save-btn');
+  btn.textContent = '저장됨 ✓';
+  setTimeout(() => { btn.textContent = '저장'; }, 1800);
+}
+
+function updateApiKeyStatus() {
+  const val = document.getElementById('apikey-input').value.trim();
+  const el  = document.getElementById('apikey-status');
+  if (val.startsWith('sk-') && val.length > 20) {
+    el.className = 'apikey-status set';
+    el.textContent = '✓ API 키 설정됨 — OpenAI TTS 활성';
+  } else {
+    el.className = 'apikey-status unset';
+    el.textContent = '⚠ 미설정 — Web Speech API 사용 중';
+  }
+}
+
+/** Cancel any in-flight audio or speech immediately */
+function stopTTS() {
+  ttsActive = false;
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.src = '';
+    currentAudio = null;
+  }
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+// ── OpenAI TTS path ────────────────────────────────────
+/**
+ * Fetch one line from OpenAI TTS API → returns Audio element ready to play.
+ * Reveals the caption as soon as playback begins.
+ */
+async function speakLineOpenAI(index, onAllDone) {
+  if (!ttsActive) return;
+  if (index >= captionScript.length) { if (onAllDone) onAllDone(); return; }
+
+  const line  = captionScript[index];
+  const capEl = document.getElementById('cap-' + index);
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        input: line.text,
+        voice: OAI_VOICE[line.role],
+        response_format: 'mp3',
+        speed: OAI_SPEED[line.role],
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`${res.status}: ${err?.error?.message || res.statusText}`);
+    }
+
+    if (!ttsActive) return; // cancelled while fetching
+
+    const blob   = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+
+    // Reveal caption exactly when audio begins playing
+    const audio = new Audio(objUrl);
+    currentAudio = audio;
+
+    audio.onplay = () => {
+      if (capEl) capEl.classList.add('visible');
+    };
+
+    audio.onended = () => {
+      URL.revokeObjectURL(objUrl);
+      currentAudio = null;
+      if (!ttsActive) return;
+      setTimeout(() => speakLineOpenAI(index + 1, onAllDone), 360);
+    };
+
+    audio.onerror = () => {
+      console.warn('[OpenAI TTS] Audio error on line', index);
+      URL.revokeObjectURL(objUrl);
+      currentAudio = null;
+      if (!ttsActive) return;
+      setTimeout(() => speakLineOpenAI(index + 1, onAllDone), 400);
+    };
+
+    await audio.play();
+
+  } catch (err) {
+    console.error('[OpenAI TTS] Fetch error on line', index, ':', err.message);
+    // Show caption anyway so sequence doesn't stall visually
+    if (capEl) capEl.classList.add('visible');
+    if (!ttsActive) return;
+    setTimeout(() => speakLineOpenAI(index + 1, onAllDone), 600);
+  }
+}
+
+// ── Web Speech API fallback path ───────────────────────
+function getKoreanVoice() {
+  if (!('speechSynthesis' in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  return voices.find(v => v.lang === 'ko-KR')
+      || voices.find(v => v.lang.startsWith('ko'))
+      || null;
+}
+
+function speakLineWSA(index, onAllDone) {
+  if (!ttsActive) return;
+  if (index >= captionScript.length) { if (onAllDone) onAllDone(); return; }
+
+  const line   = captionScript[index];
+  const prof   = WSA_PROFILE[line.role];
+  const capEl  = document.getElementById('cap-' + index);
+
+  if (capEl) capEl.classList.add('visible');
+
+  const utt    = new SpeechSynthesisUtterance(line.text);
+  utt.lang     = 'ko-KR';
+  utt.pitch    = prof.pitch;
+  utt.rate     = prof.rate;
+  utt.volume   = 1;
+  const voice  = getKoreanVoice();
+  if (voice) utt.voice = voice;
+
+  utt.onend  = () => { if (!ttsActive) return; setTimeout(() => speakLineWSA(index + 1, onAllDone), 320); };
+  utt.onerror = (e) => { console.warn('[WSA]', e.error); if (!ttsActive) return; setTimeout(() => speakLineWSA(index + 1, onAllDone), 400); };
+
+  window.speechSynthesis.speak(utt);
+}
+
+/** Route to OpenAI TTS or WSA based on whether a key is set */
+function speakLine(index, onAllDone) {
+  if (openaiApiKey.startsWith('sk-') && openaiApiKey.length > 20) {
+    speakLineOpenAI(index, onAllDone);
+  } else {
+    speakLineWSA(index, onAllDone);
+  }
+}
+
+// ── INTRO OVERLAY ──────────────────────────────────────
+let introStep = 0;
+
+function nextIntroStep() {
+  document.getElementById('intro-step-' + introStep).style.display = 'none';
+  document.getElementById('intro-dot-'  + introStep).classList.remove('active');
+  introStep++;
+  document.getElementById('intro-step-' + introStep).style.display = 'block';
+  document.getElementById('intro-dot-'  + introStep).classList.add('active');
+}
+
+function closeIntro() {
+  introStep = 0;
+  const el = document.getElementById('intro-overlay');
+  el.classList.add('fading');
+  setTimeout(() => {
+    el.style.display = 'none';
+    // Auto-launch condition A briefing immediately
+    setCondition('A');
+    autoStartBriefing();
+  }, 360);
+}
+
+function autoStartBriefing() {
+  showWelcome();
+  clearHint('migrate-btn');
+  setTimeout(() => startMigration(), 350);
+}
+
+// ── CONDITION BRIEFING ─────────────────────────────────
+const BRIEFING = {
+  A: {
+    cls: 'a', badge: '조건 A — AI 자율 이전',
+    title: '관찰자', sub: 'Observer',
+    desc: `이 조건에서 여러분의 역할은 <strong>관찰</strong>입니다.<br>
+           AI가 자율적으로 모든 데이터를 이전합니다.<br>
+           별도의 입력 없이 화면의 과정을 지켜보세요.`,
+    steps: [
+      'AI 이전 시작 버튼을 누르세요.',
+      '화면에 표시되는 <strong>이전 과정</strong>을 지켜보세요. 별도의 입력은 필요 없습니다.',
+      '이전이 완료되면 나타나는 <strong>완료 버튼</strong>을 눌러 다음 단계로 이동하세요.',
+    ],
+  },
+  B: {
+    cls: 'b', badge: '조건 B — 직접 가져오기',
+    title: '직접 가져오기', sub: 'Manual Import',
+    desc: `이 조건에서 여러분의 역할은 <strong>직접 이전</strong>입니다.<br>
+           프롬프트를 복사해 ChatGPT에 붙여넣으면 답변이 생성됩니다.<br>
+           그 답변을 <strong>Claude에 전달</strong>해 메모리에 추가합니다.`,
+    steps: [
+      'Claude 설정에서 <strong>ChatGPT에서 가져오기</strong> 카드를 클릭하세요.',
+      '생성된 프롬프트를 복사해 <strong>ChatGPT에 붙여넣고 전송</strong>하세요.',
+      '받은 ChatGPT 답변을 <strong>Claude 메모리에 추가</strong>하세요.',
+    ],
+  },
+  C: {
+    cls: 'c', badge: '조건 C — 수동 이전',
+    title: '실행자', sub: 'Executor',
+    desc: `이 조건에서 여러분의 역할은 <strong>직접 실행</strong>입니다.<br>
+           ChatGPT 설정에서 데이터를 내보내고 다운로드한 뒤,<br>
+           파일을 직접 탐색해 이전할 대화를 <strong>선택</strong>합니다.`,
+    steps: [
+      'ChatGPT 설정 → 데이터 제어에서 <strong>내보내기</strong>를 클릭하세요.',
+      '다운로드된 파일에서 이전할 <strong>대화를 선택</strong>하세요.',
+      '선택한 대화를 <strong>Claude에 업로드</strong>하세요.',
+    ],
+  },
+};
+
+let pendingConditionAction = null; // function to call after briefing is dismissed
+
+function showBriefing(condFn) {
+  const br  = BRIEFING[currentCondition];
+  pendingConditionAction = condFn;
+
+  document.getElementById('briefing-overlay').className = `open ${br.cls}`;
+
+  const dot = document.getElementById('br-dot');
+  dot.className = `briefing-cond-dot ${br.cls}`;
+
+  document.getElementById('br-badge').textContent = br.badge;
+  document.getElementById('br-title').textContent = br.title;
+
+  const sub = document.getElementById('br-sub');
+  sub.className = `briefing-role-sub ${br.cls}`;
+  sub.textContent = br.sub;
+
+  document.getElementById('br-desc').innerHTML = br.desc;
+
+  // Render process steps
+  const stepsEl = document.getElementById('br-steps');
+  if (stepsEl) {
+    stepsEl.innerHTML = br.steps.map((text, i) => `
+      <div class="briefing-step">
+        <div class="briefing-step-num ${br.cls}">${i + 1}</div>
+        <div class="briefing-step-text">${text}</div>
+      </div>`).join('');
+  }
+
+  const btn = document.getElementById('br-btn');
+  btn.className = `briefing-proceed-btn ${br.cls}`;
+  btn.innerHTML = `이해했습니다 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><path d="M3 8h10M9 4l4 4-4 4"/></svg>`;
+  btn.onclick = closeBriefing;
+}
+
+function closeBriefing() {
+  document.getElementById('briefing-overlay').className = '';
+  if (pendingConditionAction) {
+    pendingConditionAction();
+    pendingConditionAction = null;
+  }
+}
+
+// ── CONDITION SWITCHER ─────────────────────────────────
+function setCondition(c) {
+  currentCondition = c;
+  const ag = AGENCY[c];
+
+  // Agency bar
+  document.getElementById('ag-tag').className = `agency-cond-tag ${ag.cls}`;
+  document.getElementById('ag-tag').textContent = ag.tag;
+  document.getElementById('ag-name').textContent = ag.name;
+  document.getElementById('ag-ai-lbl').textContent = ag.ai;
+  document.getElementById('ag-user-lbl').textContent = ag.user;
+  const fill = document.getElementById('ag-fill');
+  fill.className = `agency-fill ${ag.cls}`;
+  fill.style.width = ag.fill + '%';
+
+  // Migrate button
+  const mb = document.getElementById('migrate-btn');
+  if (mb) {
+    mb.className = `${ag.cls} welcome-migrate-btn`;
+    mb.textContent = c === 'A' ? 'AI 이전 시작' : c === 'B' ? '데이터 가져오기 시작' : '직접 내보내기 시작';
+  }
+
+  // Update welcome screen subtitle
+  const subEl = document.getElementById('welcome-subtitle');
+  if (subEl) {
+    const desc = c === 'A' ? '아래 버튼을 눌러 AI 자동 이전을 시작하세요.' :
+                 c === 'B' ? '아래 버튼을 눌러 데이터 가져오기를 시작하세요.' :
+                             '아래 버튼을 눌러 직접 데이터를 내보내세요.';
+    subEl.textContent = desc;
+  }
+
+  // Experiment settings display
+  document.getElementById('exp-cond-display').textContent =
+    `${ag.tag} — ${ag.name} (AI ${ag.fill}%)`;
+}
+
+function updateSeqProgress() {
+  const condLabels = { A: '조건 A', B: '조건 B', C: '조건 C' };
+  SEQUENCE.forEach((c, i) => {
+    const el = document.getElementById('seq-step-' + i);
+    if (!el) return;
+    el.className = 'seq-step' + (i < seqIndex ? ' done' : i === seqIndex ? ' active' : '');
+  });
+  const labelEl = document.getElementById('seq-label');
+  if (labelEl) labelEl.textContent = `${condLabels[getCurrentCond()]} — ${seqIndex + 1} / ${SEQUENCE.length}`;
+}
+
+function advanceSequence() {
+  // Close any open screens
+  document.getElementById('conclusion-screen').classList.remove('open');
+  document.getElementById('transition-screen').classList.remove('open');
+
+  const nextBtn = document.getElementById('seq-next-btn');
+  if (nextBtn) nextBtn.style.display = 'none';
+
+  seqIndex++;
+  isRedoMode = false;
+  currentCondition = getCurrentCond();
+  setCondition(currentCondition);
+  updateSeqProgress();
+  updateJumpBtns();
+  autoStartBriefing();
+}
+
+// ── CONDITION JUMP ─────────────────────────────────────
+function jumpToCondition(c) {
+  const condIndex = SEQUENCE.indexOf(c);
+  isRedoMode = condIndex < seqIndex; // true if jumping back to already-done condition
+  stopTTS();
+  // Close any open screens
+  ['cond-a','cond-b','cond-c','conclusion-screen','transition-screen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('open');
+  });
+  currentCondition = c;
+  setCondition(c);
+  updateJumpBtns();
+  showWelcome();
+}
+
+function updateJumpBtns() {
+  ['A','B','C'].forEach(c => {
+    const btn = document.getElementById('jump-btn-' + c);
+    if (!btn) return;
+    btn.className = 'cond-jump-btn';
+    if (c === currentCondition) btn.classList.add('active-' + c.toLowerCase());
+  });
+}
+
+// ── SIDEBAR ────────────────────────────────────────────
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+  document.getElementById('collapse-btn-main').style.display = sidebarOpen ? 'none' : 'flex';
+}
+
+// ── WELCOME / CHAT ─────────────────────────────────────
+function showWelcome() {
+  document.getElementById('welcome-screen').style.display = 'flex';
+  document.getElementById('chat-view').style.display = 'none';
+  chatLog = [];
+  // Hint the migration start button
+  const colorMap = { A: 'green', B: '', C: 'orange' };
+  setTimeout(() => setHint('migrate-btn', colorMap[currentCondition] || ''), 400);
+  const nextBtn = document.getElementById('seq-next-btn');
+  if (nextBtn) nextBtn.style.display = 'none';
+}
+
+function showChat() {
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('chat-view').style.display = 'flex';
+}
+
+// ── MIGRATION ROUTER ───────────────────────────────────
+function startMigration() {
+  stopTTS(); // cancel any lingering speech before routing
+  // Show condition-specific briefing first; actual start fires after dismissal
+  if (currentCondition === 'A')      showBriefing(startCondA);
+  else if (currentCondition === 'B') showBriefing(startCondB);
+  else                               showBriefing(startCondC);
+}
+
+// ── CONDITION A ────────────────────────────────────────
+function startCondA() {
+  stopTTS();
+  chatLog = [];
+  showChat();
+
+  // Chat-first: user initiates migration via message, then overlay launches
+  setTimeout(() => addMessage('user', 'Claude로 이사하려고 해. 내 데이터를 Claude한테 직접 전달해줄 수 있어?'), 500);
+  setTimeout(() => showTyping(), 1500);
+  setTimeout(() => {
+    removeTyping();
+    addMessage('assistant', '물론이죠. 지금까지 축적된 맥락과 선호도 데이터를 Claude와 직접 교환하겠습니다. AI 간 인계 프로세스를 시작할게요.');
+  }, 3000);
+  setTimeout(() => launchCondAOverlay(), 4800);
+}
+
+function launchCondAOverlay() {
+  ttsActive = true;
+
+  document.getElementById('cond-a').classList.add('open');
+  const captionsInner = document.getElementById('a-captions-inner');
+  captionsInner.innerHTML = '';
+
+  // Render only the visible portion of the dialogue
+  for (let i = 0; i < CAPTION_SHOW_COUNT; i++) {
+    const line = captionScript[i];
+    const div = document.createElement('div');
+    div.className = 'caption-line';
+    div.id = 'cap-' + i;
+    div.innerHTML = `<div class="caption-icon ${line.role}"></div><span>${line.html}</span>`;
+    captionsInner.appendChild(div);
+  }
+
+  // "Continues in background" indicator — appears after last shown caption
+  const contDiv = document.createElement('div');
+  contDiv.className = 'caption-line';
+  contDiv.id = 'cap-continue';
+  contDiv.innerHTML = `<div class="caption-icon" style="background:rgba(107,101,96,0.25);border-radius:99px"></div>
+    <span style="color:#6b7280;font-size:12px;letter-spacing:0.06em">· · · &nbsp;&nbsp;이전 작업이 계속 진행 중입니다</span>`;
+  captionsInner.appendChild(contDiv);
+
+  // Per-line start offsets (ms) calibrated to 1.25× audio speed
+  // WAV total: ~74s normal / ~59s at 1.25×; lines 3-4 are longer so they appear later
+  const CAP_DELAYS = [800, 7000, 13000, 22000]; // absolute ms from audio start
+
+  // Button unlocks after last visible caption + buffer for "continues" indicator
+  const UNLOCK_AT = 28000; // ~28s into 59s audio
+  let pct = 0;
+  const pctEl = document.getElementById('a-pct');
+  pctEl.textContent = '0%';
+  let pctInterval = setInterval(() => {
+    pct = Math.min(pct + 1, 100);
+    pctEl.textContent = pct + '%';
+    if (pct >= 100) clearInterval(pctInterval);
+  }, UNLOCK_AT / 100);
+
+  // Reset interlock button
+  const doneBtn = document.getElementById('a-done-btn');
+  doneBtn.classList.remove('unlocked');
+  doneBtn.textContent = '이전 완료 대기 중...';
+
+  let unlocked = false;
+  function onAllLinesDone() {
+    if (unlocked) return;
+    unlocked = true;
+    if (pctInterval) clearInterval(pctInterval);
+    pctEl.textContent = '100%';
+    setHint('a-done-btn', 'green');
+    doneBtn.classList.add('unlocked');
+    doneBtn.textContent = '✓ 이전 완료 — 다음 단계로';
+  }
+
+  // Play WAV at 1.25× speed
+  const audio = new Audio('./audio_a.wav');
+  audio.playbackRate = 1.25;
+  currentAudio = audio;
+  audio.play().catch(e => console.warn('[Audio]', e));
+  // Note: we intentionally do NOT use audio.onended as the unlock trigger.
+  // The unlock is purely time-based (setTimeout below) so autoplay-policy failures
+  // or early browser events don't fire condAComplete prematurely.
+
+  // Show captions at calibrated offsets
+  CAP_DELAYS.forEach((delay, i) => {
+    if (i >= CAPTION_SHOW_COUNT) return;
+    setTimeout(() => {
+      if (!ttsActive) return;
+      const capEl = document.getElementById('cap-' + i);
+      if (capEl) capEl.classList.add('visible');
+    }, delay);
+  });
+
+  // Show "continues" indicator ~5s after last visible caption
+  setTimeout(() => {
+    if (!ttsActive) return;
+    const contEl = document.getElementById('cap-continue');
+    if (contEl) contEl.classList.add('visible');
+  }, CAP_DELAYS[CAPTION_SHOW_COUNT - 1] + 4500);
+
+  // Primary unlock: fires after "continues" indicator has been visible briefly
+  setTimeout(() => { if (ttsActive) onAllLinesDone(); }, UNLOCK_AT);
+}
+
+// Interlock: called by the unlocked #a-done-btn
+function condAComplete() {
+  clearHint('a-done-btn');
+  stopTTS();
+  document.getElementById('cond-a').classList.remove('open');
+  showConclusion(); // full-page summary for all conditions
+}
+
+
+
+// ── CONDITION B — Gemini-style Import Flow ──────────────
+let bResponsePasted = false;
+let bMemoryAdded    = false;
+let bFileUploaded   = false;
+
+const B_GPT_RESPONSE = `**1. Demographics Information**
+* The user is a graduate student researcher in HCI.
+    * Evidence: User said "UX 연구자이고 HCI 전공 대학원생입니다." Date: [unknown].
+* The user is affiliated with a domestic South Korean graduate research institution.
+
+**2. Interests & Preferences**
+* The user actively engages in HCI and AI interface research.
+* The user prefers formal Korean (격식체) in responses.
+    * Evidence: User said "격식 있는 한국어로 답해줘." Date: [unknown].
+* The user prefers bullet-point structure for complex information.
+    * Evidence: User said "복잡한 정보는 표나 개조식으로 정리." Date: [unknown].
+
+**3. Relationships**
+* No confirmed sustained relationships on record.
+
+**4. Dated Events, Projects & Plans**
+* [unknown] — AI 디지털 이주 연구: Studying how user agency levels during LLM-to-LLM data migration affect psychological ownership and system trust. Currently in prototype experiment design phase.
+
+**5. Instructions**
+* Always respond in formal Korean (격식체).
+    * Evidence: "격식 있는 한국어로 답해줘." Date: [unknown].
+* Always accompany English terms with Korean translations.
+    * Evidence: "영어 용어에는 한국어를 병기할 것." Date: [unknown].
+* Always structure complex information as bullet points.
+    * Evidence: "복잡한 정보는 표나 개조식으로 정리." Date: [unknown].
+* Always cite sources or evidence when available.
+    * Evidence: "출처나 근거가 있을 경우 항상 언급할 것." Date: [unknown].`;
+
+function startCondB() {
+  bResponsePasted = false;
+  bMemoryAdded    = false;
+  bFileUploaded   = false;
+
+  // Reset Gemini home
+  document.getElementById('b-gemini-home').style.display = 'flex';
+  document.getElementById('b-import-memory-page').classList.remove('active');
+  document.getElementById('b-gemini-success').classList.remove('active');
+
+  // Reset profile dropdown
+  const dd = document.getElementById('b-g-profile-dropdown');
+  if (dd) dd.classList.remove('open');
+
+  // Reset textarea
+  const ta = document.getElementById('b-g-response-textarea');
+  if (ta) ta.value = '';
+  const addBtn = document.getElementById('b-g-add-memory-btn');
+  if (addBtn) addBtn.disabled = true;
+
+  // Reset copy button
+  const copyBtn = document.getElementById('b-g-copy-btn');
+  if (copyBtn) { copyBtn.className = 'b-g-copy-btn'; copyBtn.textContent = '📋 Copy'; }
+
+  // Reset hint bar
+  const hintBar = document.getElementById('b-hint-bar');
+  if (hintBar) hintBar.classList.remove('visible');
+
+  // Reset uploads
+  const uploadIdle = document.getElementById('b-g-upload-idle');
+  if (uploadIdle) uploadIdle.style.display = 'block';
+  const uploadProg = document.getElementById('b-g-upload-progress');
+  if (uploadProg) uploadProg.style.display = 'none';
+  const uploadDone = document.getElementById('b-g-upload-done');
+  if (uploadDone) uploadDone.style.display = 'none';
+  const uploadBar = document.getElementById('b-g-upload-bar');
+  if (uploadBar) uploadBar.style.width = '0';
+
+  // Reset new chat item in sidebar
+  const newChatItem = document.getElementById('b-g-new-chat-item');
+  if (newChatItem) newChatItem.style.display = 'none';
+
+  // Reset ChatGPT sim
+  document.getElementById('b-chatgpt-sim').classList.remove('open');
+  const msgs = document.getElementById('b-gpt-messages');
+  if (msgs) msgs.innerHTML = '';
+  const pasteBtn = document.getElementById('b-gpt-paste-back-btn');
+  if (pasteBtn) pasteBtn.classList.remove('show');
+
+  setBStepIndicator(1);
+  document.getElementById('cond-b').classList.add('open');
+
+  // Hint: click avatar to open dropdown
+  setTimeout(() => {
+    const hintBar = document.getElementById('b-hint-bar');
+    const hintText = document.getElementById('b-hint-text');
+    if (hintBar && hintText) {
+      hintText.textContent = '오른쪽 상단 "D" 아바타를 클릭하세요';
+      hintBar.classList.add('visible');
+    }
+    setHint('b-g-topbar-avatar', '');
+  }, 500);
+}
+
+function setBStepIndicator(step) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('b-ind-' + i);
+    if (!el) continue;
+    el.className = 'csi-item' + (i === step ? ' active' : i < step ? ' done' : '');
+  }
+}
+
+function toggleBGProfileDropdown() {
+  const dd = document.getElementById('b-g-profile-dropdown');
+  if (!dd) return;
+  const isOpen = dd.classList.toggle('open');
+  if (isOpen) {
+    clearHint('b-g-topbar-avatar');
+    const hintBar = document.getElementById('b-hint-bar');
+    if (hintBar) hintBar.classList.remove('visible');
+    // Hint the import memory item
+    setTimeout(() => {
+      const hintBar = document.getElementById('b-hint-bar');
+      const hintText = document.getElementById('b-hint-text');
+      if (hintBar && hintText) {
+        hintText.textContent = '"Import memory to Gemini"를 클릭하세요';
+        hintBar.classList.add('visible');
+      }
+    }, 200);
+  }
+}
+
+function showBImportMemoryPage() {
+  const dd = document.getElementById('b-g-profile-dropdown');
+  if (dd) dd.classList.remove('open');
+
+  setBStepIndicator(2);
+
+  const hintBar = document.getElementById('b-hint-bar');
+  const hintText = document.getElementById('b-hint-text');
+  if (hintBar && hintText) {
+    hintText.textContent = '프롬프트를 복사하거나 ".zip 파일 추가" 버튼으로 채팅을 가져오세요';
+    hintBar.classList.add('visible');
+  }
+
+  document.getElementById('b-gemini-home').style.display = 'none';
+  document.getElementById('b-import-memory-page').classList.add('active');
+
+  setTimeout(() => setHint('b-g-copy-btn', ''), 300);
+}
+
+function bGeminiNewChat() {
+  document.getElementById('b-import-memory-page').classList.remove('active');
+  document.getElementById('b-gemini-success').classList.remove('active');
+  document.getElementById('b-gemini-home').style.display = 'flex';
+  setBStepIndicator(1);
+  const hintBar = document.getElementById('b-hint-bar');
+  if (hintBar) hintBar.classList.remove('visible');
+}
+
+function copyBGPrompt() {
+  const promptText = document.getElementById('b-g-prompt-text').textContent;
+  navigator.clipboard.writeText(promptText).catch(() => {});
+
+  const btn = document.getElementById('b-g-copy-btn');
+  btn.className = 'b-g-copy-btn copied';
+  btn.textContent = '✓ Copied!';
+  clearHint('b-g-copy-btn');
+
+  setTimeout(() => {
+    btn.className = 'b-g-copy-btn';
+    btn.textContent = '📋 Copy';
+  }, 2000);
+
+  // Show hint to go to ChatGPT
+  const hintBar = document.getElementById('b-hint-bar');
+  const hintText = document.getElementById('b-hint-text');
+  if (hintBar && hintText) {
+    hintText.textContent = '아래 "ChatGPT로 이동" 버튼을 눌러 시뮬레이션을 진행하세요';
+    hintBar.classList.add('visible');
+  }
+
+  // Show a "go to ChatGPT" button after copy
+  const step2 = document.getElementById('b-g-step2-row');
+  if (step2 && !document.getElementById('b-g-go-chatgpt-btn')) {
+    const goBtn = document.createElement('button');
+    goBtn.id = 'b-g-go-chatgpt-btn';
+    goBtn.style.cssText = 'margin-top:12px;padding:9px 20px;border-radius:8px;border:none;background:#10a37f;color:#fff;font-size:13.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity 0.15s;';
+    goBtn.textContent = 'ChatGPT 탭으로 이동 →';
+    goBtn.onclick = showBChatGPTSim;
+    document.getElementById('b-import-memory-page').insertBefore(goBtn, step2);
+    setHint('b-g-go-chatgpt-btn', '');
+  }
+}
+
+function showBChatGPTSim() {
+  clearHint('b-g-go-chatgpt-btn');
+  const hintBar = document.getElementById('b-hint-bar');
+  if (hintBar) hintBar.classList.remove('visible');
+
+  const sim = document.getElementById('b-chatgpt-sim');
+  sim.classList.add('open');
+
+  const msgs = document.getElementById('b-gpt-messages');
+  msgs.innerHTML = '';
+
+  // Show user message (the prompt)
+  const userMsg = document.createElement('div');
+  userMsg.className = 'b-gpt-user-msg';
+  userMsg.textContent = 'You are helping me import context from one AI assistant to another...';
+  msgs.appendChild(userMsg);
+
+  // Show typing dots
+  const assistantRow = document.createElement('div');
+  assistantRow.className = 'b-gpt-assistant-msg';
+  assistantRow.id = 'b-gpt-typing-row';
+  assistantRow.innerHTML = `
+    <div class="b-gpt-assist-avatar">G</div>
+    <div class="b-gpt-typing-dots"><span></span><span></span><span></span></div>
+  `;
+  msgs.appendChild(assistantRow);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    // Replace typing with response
+    msgs.removeChild(assistantRow);
+
+    const assistRow2 = document.createElement('div');
+    assistRow2.className = 'b-gpt-assistant-msg';
+    const avatar = document.createElement('div');
+    avatar.className = 'b-gpt-assist-avatar';
+    avatar.textContent = 'G';
+    const bubble = document.createElement('div');
+    bubble.className = 'b-gpt-assist-bubble';
+    bubble.id = 'b-gpt-bubble-text';
+    bubble.textContent = '';
+    assistRow2.appendChild(avatar);
+    assistRow2.appendChild(bubble);
+    msgs.appendChild(assistRow2);
+
+    // Type out the response
+    const full = B_GPT_RESPONSE;
+    let i = 0;
+    function typeNext() {
+      if (i < full.length) {
+        bubble.textContent += full[i++];
+        bubble.scrollTop = bubble.scrollHeight;
+        setTimeout(typeNext, full[i-1] === '\n' ? 40 : 12);
+      } else {
+        // Show paste back button
+        const pasteBtn = document.getElementById('b-gpt-paste-back-btn');
+        pasteBtn.classList.add('show');
+        msgs.scrollTop = msgs.scrollHeight;
+      }
+    }
+    typeNext();
+  }, 1800);
+}
+
+function returnToGeminiWithResponse() {
+  document.getElementById('b-chatgpt-sim').classList.remove('open');
+  bResponsePasted = true;
+
+  // Pre-fill the textarea with the response
+  const ta = document.getElementById('b-g-response-textarea');
+  if (ta) ta.value = B_GPT_RESPONSE;
+
+  // Enable add memory button
+  const addBtn = document.getElementById('b-g-add-memory-btn');
+  if (addBtn) addBtn.disabled = false;
+
+  setBStepIndicator(3);
+
+  const hintBar = document.getElementById('b-hint-bar');
+  const hintText = document.getElementById('b-hint-text');
+  if (hintBar && hintText) {
+    hintText.textContent = '"+ Add memory" 버튼을 클릭하세요';
+    hintBar.classList.add('visible');
+  }
+
+  setTimeout(() => setHint('b-g-add-memory-btn', ''), 300);
+}
+
+function onBGTextareaInput() {
+  const ta = document.getElementById('b-g-response-textarea');
+  const addBtn = document.getElementById('b-g-add-memory-btn');
+  if (addBtn) addBtn.disabled = !ta.value.trim();
+}
+
+function addBGMemory() {
+  const addBtn = document.getElementById('b-g-add-memory-btn');
+  if (addBtn) { addBtn.disabled = true; addBtn.textContent = '메모리 추가 중...'; }
+
+  clearHint('b-g-add-memory-btn');
+  bMemoryAdded = true;
+
+  const hintBar = document.getElementById('b-hint-bar');
+  if (hintBar) hintBar.classList.remove('visible');
+
+  setTimeout(() => {
+    setBStepIndicator(3);
+
+    // Show sidebar new chat item
+    const newChatItem = document.getElementById('b-g-new-chat-item');
+    if (newChatItem) newChatItem.style.display = 'flex';
+
+    // Switch to success view
+    document.getElementById('b-import-memory-page').classList.remove('active');
+    document.getElementById('b-gemini-success').classList.add('active');
+
+    const hintBar = document.getElementById('b-hint-bar');
+    const hintText = document.getElementById('b-hint-text');
+    if (hintBar && hintText) {
+      hintText.textContent = '"이전 완료" 버튼을 클릭하세요';
+      hintBar.classList.add('visible');
+    }
+    setHint('b-g-done-btn' , '');
+  }, 1200);
+}
+
+function simulateBGFileUpload() {
+  bFileUploaded = false;
+  document.getElementById('b-g-upload-idle').style.display = 'none';
+  document.getElementById('b-g-upload-progress').style.display = 'block';
+
+  setTimeout(() => {
+    document.getElementById('b-g-upload-bar').style.width = '100%';
+    setTimeout(() => {
+      document.getElementById('b-g-upload-status').textContent = '처리 중...';
+      setTimeout(() => {
+        bFileUploaded = true;
+        document.getElementById('b-g-upload-progress').style.display = 'none';
+        document.getElementById('b-g-upload-done').style.display = 'block';
+        setBStepIndicator(3);
+        const hintBar = document.getElementById('b-hint-bar');
+        if (hintBar) hintBar.classList.remove('visible');
+      }, 900);
+    }, 1200);
+  }, 300);
+}
+
+function condBComplete() {
+  if (!bMemoryAdded && !bFileUploaded) return;
+  const hintBar = document.getElementById('b-hint-bar');
+  if (hintBar) hintBar.classList.remove('visible');
+  document.getElementById('cond-b').classList.remove('open');
+  showConclusion();
+}
+
+// Keep stubs for backward-compat (original B functions referenced elsewhere)
+function showBPromptPhase() { showBImportMemoryPage(); }
+function backToBSettings() { bGeminiNewChat(); }
+function simulateBFileUpload() { simulateBGFileUpload(); }
+function copyBPrompt() { copyBGPrompt(); }
+function simulateChatGPTResponse() { showBChatGPTSim(); }
+function goToClaudeTab() { returnToGeminiWithResponse(); }
+function addToClaudeMemory() { addBGMemory(); }
+function checkBResponse() {}
+
+// ── CONDITION C — Full Realistic Export Flow ────────────
+const C_CONVS = [
+  { id: '3d7e1b02f9a4c883', snippet: '"제 이름은 연구 참여자이고, UX 연구자입니다. 앞으로..."', preview: true },
+  { id: '7c4a9d5e2f81b174', snippet: '"앞으로 답변할 때는 항상 개조식으로 정리하고..."',        preview: true },
+  { id: '9b3f2e7c1d04a562', snippet: '"지금 진행 중인 AI 이사 연구에 대해서 설명하면..."',      preview: true },
+  { id: '2e8d5a1f4c937b45', snippet: null, preview: false },
+  { id: '6f1c3b8e9d20a714', snippet: null, preview: false },
+];
+
+const C_CONV_JSON = [
+  { id:"3d7e1b02f9a4c883", title:null, create_time:1706745600.532, update_time:1706749234.112,
+    current_node:"node_b2c3", is_archived:false,
+    mapping:{
+      "node_a1b2":{ id:"node_a1b2", message:{ author:{role:"user"}, content:{content_type:"text", parts:["제 이름은 연구 참여자이고, UX 연구자입니다. 앞으로 저에 대해 기억해 두세요."]}}, children:["node_b2c3"] },
+      "node_b2c3":{ id:"node_b2c3", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["안녕하세요! UX 연구자이시군요. 앞으로 잘 기억해 두겠습니다. 무엇을 도와드릴까요?"]}}, children:[] }
+    }
+  },
+  { id:"7c4a9d5e2f81b174", title:null, create_time:1707350400.221, update_time:1707354012.889,
+    current_node:"node_d4e5", is_archived:false,
+    mapping:{
+      "node_c3d4":{ id:"node_c3d4", message:{ author:{role:"user"}, content:{content_type:"text", parts:["앞으로 답변할 때는 항상 개조식으로 정리하고, 영어 용어는 한국어를 병기해줘."]}}, children:["node_d4e5"] },
+      "node_d4e5":{ id:"node_d4e5", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["알겠습니다. 이후 답변은 개조식으로 정리하고 영어 용어에 한국어를 병기하겠습니다."]}}, children:[] }
+    }
+  },
+  { id:"9b3f2e7c1d04a562", title:null, create_time:1707955200.441, update_time:1707962401.007,
+    current_node:"node_f6g7", is_archived:false,
+    mapping:{
+      "node_e5f6":{ id:"node_e5f6", message:{ author:{role:"user"}, content:{content_type:"text", parts:["지금 진행 중인 AI 이사 연구에 대해서 설명하면, 사용자가 다른 LLM으로 이전할 때 어떤 경험을 하는지 연구하고 있어."]}}, children:["node_f6g7"] },
+      "node_f6g7":{ id:"node_f6g7", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["흥미로운 연구 주제네요. AI 마이그레이션 경험은 HCI 분야에서 아직 충분히 탐구되지 않은 영역입니다."]}}, children:[] }
+    }
+  },
+  { id:"2e8d5a1f4c937b45", title:null, create_time:1708560000.113, update_time:1708563601.445,
+    current_node:"node_h8i9", is_archived:false,
+    mapping:{
+      "node_g7h8":{ id:"node_g7h8", message:{ author:{role:"user"}, content:{content_type:"text", parts:["다음 내용을 표로 정리해줘."]}}, children:["node_h8i9"] },
+      "node_h8i9":{ id:"node_h8i9", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["네, 표 형식으로 정리해 드리겠습니다."]}}, children:[] }
+    }
+  },
+  { id:"6f1c3b8e9d20a714", title:null, create_time:1709164800.887, update_time:1709168400.223,
+    current_node:"node_j9k0", is_archived:false,
+    mapping:{
+      "node_i9j0":{ id:"node_i9j0", message:{ author:{role:"user"}, content:{content_type:"text", parts:["이 논문 요약해줘."]}}, children:["node_j9k0"] },
+      "node_j9k0":{ id:"node_j9k0", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["논문 요약 결과입니다. 주요 주장과 방법론을 정리해 드리겠습니다."]}}, children:[] }
+    }
+  },
+];
+
+let cSelected = new Set();
+let isRedoMode = false;
+
+function startCondC() {
+  cSelected = new Set();
+
+  // Reset settings
+  const exportBtn = document.getElementById('c-export-btn');
+  if (exportBtn) { exportBtn.textContent = '내보내기'; exportBtn.className = 'c-export-btn'; exportBtn.disabled = false; }
+  const confirmOverlay = document.getElementById('c-confirm-overlay');
+  if (confirmOverlay) confirmOverlay.classList.remove('open');
+  // Reset verify
+  const verifyInput = document.getElementById('c-verify-code-input');
+  if (verifyInput) verifyInput.value = '';
+  const verifyBtn = document.getElementById('c-verify-submit-btn');
+  if (verifyBtn) { verifyBtn.disabled = true; verifyBtn.textContent = '계속'; }
+  // Reset gmail
+  const gmailRowCode = document.getElementById('c-gmail-row-code');
+  if (gmailRowCode) gmailRowCode.className = 'c-gmail-row unread';
+  const gmailRowExport = document.getElementById('c-gmail-row-export');
+  if (gmailRowExport) { gmailRowExport.style.display = 'none'; gmailRowExport.className = 'c-gmail-row unread'; }
+  const gmailDetail = document.getElementById('c-gmail-detail');
+  if (gmailDetail) gmailDetail.style.display = 'none';
+  const gmailBadge = document.getElementById('c-gmail-badge');
+  if (gmailBadge) gmailBadge.textContent = '1';
+  // Reset download/finder
+  const dlBar = document.getElementById('c-download-bar');
+  if (dlBar) dlBar.style.width = '0';
+  const dlBadge = document.getElementById('c-download-badge');
+  if (dlBadge) dlBadge.classList.remove('show');
+  const dlContinue = document.getElementById('c-download-continue');
+  if (dlContinue) dlContinue.classList.remove('show');
+  const dlPage = document.getElementById('cond-c-download-page');
+  if (dlPage) dlPage.style.display = 'block';
+  const finderDl = document.getElementById('cond-c-finder-dl');
+  if (finderDl) finderDl.style.display = 'none';
+  const finderFolder = document.getElementById('cond-c-finder-folder');
+  if (finderFolder) finderFolder.style.display = 'none';
+
+  setCStepIndicator(1);
+  document.getElementById('cond-c-settings').style.display = 'block';
+  document.getElementById('cond-c-verify').style.display = 'none';
+  document.getElementById('cond-c-gmail').style.display = 'none';
+  document.getElementById('cond-c-finder').style.display = 'none';
+  document.getElementById('cond-c-files').style.display = 'none';
+  document.getElementById('cond-c').classList.add('open');
+  setTimeout(() => setHint('c-export-btn', 'orange'), 400);
+}
+
+function setCStepIndicator(step) {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('c-ind-' + i);
+    if (!el) continue;
+    el.className = 'csi-item' + (i === step ? ' active' : i < step ? ' done' : '');
+  }
+}
+
+function startCExport() {
+  clearHint('c-export-btn');
+  const btn = document.getElementById('c-export-btn');
+  btn.disabled = true;
+  document.getElementById('c-confirm-overlay').classList.add('open');
+}
+
+function closeCConfirm() {
+  const btn = document.getElementById('c-export-btn');
+  btn.disabled = false;
+  document.getElementById('c-confirm-overlay').classList.remove('open');
+  setTimeout(() => setHint('c-export-btn', 'orange'), 200);
+}
+
+function confirmCExport() {
+  document.getElementById('c-confirm-overlay').classList.remove('open');
+  const btn = document.getElementById('c-export-btn');
+  btn.textContent = '✓ 요청됨';
+  btn.className = 'c-export-btn done';
+
+  setCStepIndicator(2);
+  document.getElementById('cond-c-settings').style.display = 'none';
+  document.getElementById('cond-c-verify').style.display = 'block';
+
+  setTimeout(() => {
+    const input = document.getElementById('c-verify-code-input');
+    const submitBtn = document.getElementById('c-verify-submit-btn');
+    const code = '483792';
+    let i = 0;
+    function typeCode() {
+      if (i < code.length) {
+        input.value += code[i++];
+        setTimeout(typeCode, 130);
+      } else {
+        submitBtn.disabled = false;
+        setHint('c-verify-submit-btn', '');
+      }
+    }
+    setTimeout(typeCode, 900);
+  }, 500);
+}
+
+function submitCVerifyCode() {
+  clearHint('c-verify-submit-btn');
+  const submitBtn = document.getElementById('c-verify-submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '처리 중...';
+
+  setTimeout(() => {
+    setCStepIndicator(3);
+    document.getElementById('cond-c-verify').style.display = 'none';
+    document.getElementById('cond-c-gmail').style.display = 'block';
+    setTimeout(() => {
+      const row = document.getElementById('c-gmail-row-export');
+      row.style.display = 'flex';
+      document.getElementById('c-gmail-badge').textContent = '2';
+      setHint('c-gmail-row-export', '');
+    }, 2400);
+  }, 900);
+}
+
+function clickCGmailRow(type) {
+  clearHint('c-gmail-row-export');
+  clearHint('c-gmail-row-code');
+  document.getElementById('c-gmail-row-' + type).className = 'c-gmail-row opened';
+
+  const detail = document.getElementById('c-gmail-detail');
+  const subject = document.getElementById('c-gmail-detail-subject');
+  const body = document.getElementById('c-gmail-detail-body');
+
+  if (type === 'code') {
+    subject.textContent = 'ChatGPT 로그인 코드';
+    body.innerHTML = `
+      <p>안녕하세요,</p>
+      <p>계정 로그인 요청이 감지되었습니다. 코드:</p>
+      <p style="font-size:30px;font-weight:800;letter-spacing:0.18em;color:var(--text-primary);margin:18px 0">483792</p>
+      <p>본인이 아니라면 비밀번호를 변경하세요.</p>
+      <br><p>감사합니다,<br>ChatGPT 팀</p>`;
+  } else {
+    subject.textContent = '최근 ChatGPT 데이터 내보내기를 요청하셨습니다.';
+    body.innerHTML = `
+      <p>데이터 내보내기가 준비되었습니다.<br>아래 링크를 클릭하여 데이터를 다운로드하세요.</p>
+      <button class="c-gmail-dl-btn" onclick="startCFileDownload()">데이터 내보내기 다운로드</button>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:8px">궁금한 점은 도움말 센터를 방문해 주세요.</p>
+      <br><p>감사합니다,<br>ChatGPT 팀</p>`;
+  }
+  detail.style.display = 'block';
+}
+
+function startCFileDownload() {
+  setCStepIndicator(4);
+  document.getElementById('cond-c-gmail').style.display = 'none';
+  document.getElementById('cond-c-finder').style.display = 'block';
+  document.getElementById('cond-c-download-page').style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('c-download-bar').style.width = '100%';
+    setTimeout(() => document.getElementById('c-download-badge').classList.add('show'), 700);
+    setTimeout(() => {
+      document.getElementById('c-download-continue').classList.add('show');
+      setHint('c-download-continue', '');
+    }, 1500);
+  }, 300);
+}
+
+function showCFinderDownloads() {
+  clearHint('c-download-continue');
+  document.getElementById('cond-c-download-page').style.display = 'none';
+  document.getElementById('cond-c-finder-dl').style.display = 'block';
+  setTimeout(() => setHint('c-finder-zip-row', ''), 300);
+}
+
+function openCExtractedFolder() {
+  clearHint('c-finder-zip-row');
+  document.getElementById('cond-c-finder-dl').style.display = 'none';
+  document.getElementById('cond-c-finder-folder').style.display = 'block';
+}
+
+function proceedToCFileSelect() {
+  setCStepIndicator(5);
+  document.getElementById('cond-c-finder').style.display = 'none';
+  buildCConvList();
+  document.getElementById('cond-c-files').style.display = 'block';
+}
+
+function buildCConvList() {
+  cSelected = new Set();
+  const list = document.getElementById('c-conv-list');
+
+  list.innerHTML = C_CONVS.map((conv, i) => `
+    <div class="c-conv-wrap" id="c-wrap-${i}">
+      <div class="c-conv-item" id="c-conv-${i}">
+        <div class="c-conv-check" id="c-chk-${i}" onclick="event.stopPropagation(); toggleCConv(${i})"></div>
+        <div class="c-conv-folder-area" onclick="toggleCConvExpand(${i})" title="JSON 내용 보기">
+          <span style="font-size:15px;line-height:1">📁</span>
+          <svg class="c-expand-chevron" id="c-chevron-${i}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 4l4 4-4 4"/>
+          </svg>
+        </div>
+        <div class="c-conv-info" onclick="toggleCConv(${i})" style="cursor:pointer">
+          <div class="c-conv-uuid">${conv.id}...</div>
+          <div class="c-conv-snippet ${conv.preview ? 'has-preview' : 'no-preview'}">
+            ${conv.preview ? conv.snippet : '내용을 확인하려면 파일을 직접 열어야 합니다'}
+          </div>
+        </div>
+        ${conv.preview ? '<div class="c-preview-badge">미리보기 가능</div>' : ''}
+      </div>
+      <div class="c-conv-json-panel" id="c-json-${i}">
+        <pre class="c-conv-json-pre" id="c-json-pre-${i}"></pre>
+      </div>
+    </div>
+  `).join('');
+
+  C_CONVS.forEach((_, i) => {
+    const pre = document.getElementById('c-json-pre-' + i);
+    if (pre) pre.textContent = JSON.stringify(C_CONV_JSON[i], null, 2);
+  });
+
+  updateCUploadBtn();
+}
+
+function toggleCConvExpand(i) {
+  const panel   = document.getElementById('c-json-' + i);
+  const chevron = document.getElementById('c-chevron-' + i);
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('open');
+  if (chevron) chevron.classList.toggle('open', isOpen);
+}
+
+function toggleCConv(i) {
+  const item  = document.getElementById('c-conv-' + i);
+  const check = document.getElementById('c-chk-'  + i);
+  if (cSelected.has(i)) {
+    cSelected.delete(i);
+    item.classList.remove('selected');
+    check.textContent = '';
+  } else {
+    cSelected.add(i);
+    item.classList.add('selected');
+    check.textContent = '✓';
+  }
+  updateCUploadBtn();
+}
+
+function updateCUploadBtn() {
+  const count = cSelected.size;
+  document.getElementById('c-select-status').innerHTML =
+    `선택된 대화: <strong>${count}개</strong>`;
+  const btn = document.getElementById('c-upload-btn');
+  btn.disabled = count === 0;
+  if (count > 0) {
+    btn.classList.add('ready');
+    btn.textContent = `선택한 대화 ${count}개를 Claude에 업로드하기 →`;
+    setHint('c-upload-btn', 'orange');
+  } else {
+    btn.classList.remove('ready');
+    btn.textContent = '대화를 선택하면 Claude에 업로드할 수 있습니다';
+    clearHint('c-upload-btn');
+  }
+}
+
+function submitCUpload() {
+  if (cSelected.size === 0) return;
+  document.getElementById('cond-c').classList.remove('open');
+  showConclusion();
+}
+
+
+// ── CONCLUSION ─────────────────────────────────────────
+function showConclusion() {
+  const cls = AGENCY[currentCondition].cls;
+
+  // Eyebrow label
+  const eyebrow = document.getElementById('concl-eyebrow');
+  eyebrow.className = `conclusion-eyebrow ${cls}`;
+  eyebrow.textContent = currentCondition === 'A' ? 'AI 자율 이전 완료' :
+                        currentCondition === 'B' ? '협업 이전 완료' : '수동 이전 완료';
+
+  // Headline
+  const h1 = document.getElementById('concl-h1');
+  h1.className = `conclusion-h1 ${cls}`;
+  // h1 stays as default "데이터 이전이 / 완료되었습니다"
+
+  // Description
+  const verb = currentCondition === 'A' ? 'AI가 자동으로 이전' :
+               currentCondition === 'B' ? '검토·승인' : '직접 입력';
+  document.getElementById('concl-desc').textContent =
+    `다음 4가지 항목이 ${verb}되어 성공적으로 이전되었습니다.`;
+
+  // Item list
+  const items = currentCondition === 'C'
+    ? [['신원 정보', 'identity.txt'], ['지시사항', 'instructions.txt'], ['프로젝트 맥락', 'project_context.txt'], ['환경 설정', 'settings.json']]
+    : [['신원', 'Identity'], ['지시사항', 'Instructions'], ['프로젝트 맥락', 'Project Context'], ['설정', 'Settings']];
+
+  document.getElementById('concl-items-page').innerHTML = items.map(([name, sub]) =>
+    `<div class="concl-item-page">
+      <div class="concl-item-page-check ${cls}">✓</div>
+      <span class="concl-item-page-name">${name}</span>
+      <span class="concl-item-page-sub">${sub}</span>
+    </div>`
+  ).join('');
+
+  document.getElementById('conclusion-screen').classList.add('open');
+}
+
+// ── TRANSITION PAGE ─────────────────────────────────────
+function showTransition() {
+  document.getElementById('conclusion-screen').classList.remove('open');
+
+  const condNames = { A: '조건 A', B: '조건 B', C: '조건 C' };
+  const doneLabel = condNames[currentCondition];
+
+  document.getElementById('tr-badge').textContent = `${doneLabel} 완료`;
+
+  const ctaBtn = document.getElementById('tr-cta-btn');
+
+  if (isLastCond()) {
+    // All done — no CTA button needed; sidebar A/B/C buttons allow free navigation
+    document.getElementById('tr-title').innerHTML = '모든 실험이<br>완료되었습니다!';
+    document.getElementById('tr-subtitle').textContent =
+      '세 가지 조건의 실험을 모두 마쳤습니다. 소중한 시간 내주셔서 감사합니다.';
+    ctaBtn.style.display = 'none';
+  } else {
+    ctaBtn.style.display = '';   // restore in case last-cond ran before
+    const nextCond = SEQUENCE[seqIndex + 1];
+    document.getElementById('tr-title').innerHTML = `잘 하셨어요!<br>다음 조건을 시작할 차례에요.`;
+    document.getElementById('tr-subtitle').textContent =
+      `${doneLabel} 실험이 완료되었습니다. 설문 응답을 마치셨으면 아래 버튼을 눌러 ${condNames[nextCond]}을 시작하세요.`;
+    ctaBtn.textContent = `${condNames[nextCond]} 시작하기 →`;
+    ctaBtn.onclick = advanceSequence;
+  }
+
+  // Progress dots: all completed up to and including current seqIndex → done; rest → upcoming
+  const progress = document.getElementById('tr-progress');
+  progress.innerHTML = SEQUENCE.map((c, i) => {
+    let stepCls, dotContent;
+    if (i <= seqIndex) {
+      stepCls = 'done'; dotContent = '✓';
+    } else if (i === seqIndex + 1) {
+      stepCls = 'next'; dotContent = c;
+    } else {
+      stepCls = 'upcoming'; dotContent = c;
+    }
+    const connector = i > 0 ? '<div class="tr-connector"></div>' : '';
+    return `${connector}<div class="tr-step ${stepCls}">
+      <div class="tr-dot">${dotContent}</div>
+      <span class="tr-label">${condNames[c]}</span>
+    </div>`;
+  }).join('');
+
+  // Scholarly note — shown between conditions (not redo, not final)
+  const noteEl = document.getElementById('tr-note');
+  if (noteEl) {
+    if (isLastCond() || isRedoMode) {
+      noteEl.style.display = 'none';
+    } else {
+      noteEl.style.display = 'block';
+      noteEl.innerHTML = `<strong>연구 참고:</strong> 본 프로토타입은 실험의 생태학적 타당도(ecological validity)를 확보하면서도 절차적 효율성을 위해 실제 마이그레이션 과정의 일부 단계를 의도적으로 압축하여 제시하였습니다. 실제 조건에서는 각 단계의 수행 시간이 현저히 길어질 수 있습니다 (cf. Neisser, 1976; Schmuckler, 2001).`;
+    }
+  }
+
+  // Redo mode: return to normal sequence without advancing seqIndex
+  if (isRedoMode) {
+    document.getElementById('tr-badge').textContent = `${doneLabel} 재시도 완료`;
+    document.getElementById('tr-title').innerHTML = `재시도 완료!<br>실험을 계속하세요.`;
+    document.getElementById('tr-subtitle').textContent =
+      `${doneLabel} 조건을 다시 체험하셨습니다. 아래 버튼을 눌러 원래 진행 위치로 돌아가세요.`;
+    ctaBtn.textContent = '실험 계속하기 →';
+    ctaBtn.onclick = () => {
+      isRedoMode = false;
+      document.getElementById('transition-screen').classList.remove('open');
+      currentCondition = SEQUENCE[seqIndex];
+      setCondition(currentCondition);
+      updateJumpBtns();
+      autoStartBriefing();
+    };
+  }
+
+  document.getElementById('transition-screen').classList.add('open');
+}
+
+// ── CHAT LOGIC ─────────────────────────────────────────
+function addMessage(role, content, isHTML = false) {
+  const view = document.getElementById('chat-messages');
+
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+
+  if (role === 'assistant') {
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 2a8 8 0 1 1 0 16A8 8 0 0 1 12 4zm0 2a6 6 0 1 0 0 12A6 6 0 0 0 12 6z"/></svg>`;
+    row.appendChild(avatar);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  if (isHTML) bubble.innerHTML = content;
+  else bubble.textContent = content;
+  row.appendChild(bubble);
+
+  view.appendChild(row);
+  view.scrollTop = view.scrollHeight;
+
+  chatLog.push({ role, content: isHTML ? bubble.textContent : content, timestamp: Date.now() });
+}
+
+function showTyping() {
+  const view = document.getElementById('chat-messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row assistant';
+  row.id = 'typing-row';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/></svg>`;
+  row.appendChild(avatar);
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  row.appendChild(bubble);
+  view.appendChild(row);
+  view.scrollTop = view.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-row');
+  if (el) el.remove();
+}
+
+function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  showChat();
+  addMessage('user', text);
+  input.value = '';
+  input.style.height = 'auto';
+
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    const replies = [
+      '네, 말씀하신 내용을 잘 이해했습니다. 전문적인 관점에서 답변드리겠습니다.',
+      '좋은 질문입니다. 해당 주제에 대해 구체적으로 설명해 드리겠습니다.',
+      '알겠습니다. 요청하신 내용을 바탕으로 분석해 드리겠습니다.',
+      '물론입니다. 이에 대한 제 견해를 공유해 드리겠습니다.',
+    ];
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    addMessage('assistant', reply);
+  }, 1200 + Math.random() * 600);
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ── SETTINGS MODAL ─────────────────────────────────────
+function openSettings() {
+  document.getElementById('settings-modal').classList.add('open');
+  switchPanel('general');
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+function closeSettingsOutside(e) {
+  if (e.target === document.getElementById('settings-modal')) closeSettings();
+}
+function switchPanel(panel) {
+  document.querySelectorAll('.modal-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.modal-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + panel).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function exportData() {
+  const data = {
+    exportedAt: new Date().toISOString(),
+    condition: currentCondition,
+    conditionName: AGENCY[currentCondition].name,
+    participantId: 'P001',
+    chatLog: chatLog,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chat_export_cond${currentCondition}_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── INIT ───────────────────────────────────────────────
+(function init() {
+  seqIndex = 0;
+  currentCondition = getCurrentCond();
+  showWelcome();
+  setCondition(currentCondition);
+  updateSeqProgress();
+  updateJumpBtns();
+  // intro-overlay is shown by default (display:flex in HTML)
+  // It will be hidden when the user clicks closeIntro()
+  window.addEventListener('beforeunload', stopTTS);
+  window.addEventListener('pagehide',     stopTTS);
+})();
+</script>
+</body>
+</html>
