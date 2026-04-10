@@ -1249,92 +1249,91 @@
     .c-finder-proceed-btn.show { display: block; }
 
     /* Step 5: Conversation selection (Claude file explorer) */
-    #cond-c-files { display: none; }
-    .c-files-inner { padding: 0 0 28px; }
-    .c-file-explorer-header {
-      display: flex; align-items: center; gap: 12px;
-      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    /* ── Condition C Step 5: JSON viewer ── */
+    #cond-c-files { display: none; flex-direction: column; }
+    .cjv-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; background: #2d2d2d; border-bottom: 1px solid #444;
+      flex-shrink: 0;
     }
-    .c-file-explorer-header-logo {
-      width: 28px; height: 28px; border-radius: 50%; background: #D97757;
-      color: #fff; display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    .cjv-header-icon { font-size: 15px; }
+    .cjv-header-name { font-size: 13px; font-weight: 600; color: #d4d4d4; font-family: 'SF Mono','Fira Code',monospace; flex: 1; }
+    .cjv-header-meta { font-size: 11px; color: #888; }
+    .cjv-warning {
+      display: flex; align-items: flex-start; gap: 8px; padding: 9px 14px;
+      background: #3a2e00; border-bottom: 1px solid #5a4500;
+      font-size: 12px; color: #f0c040; line-height: 1.5; flex-shrink: 0; word-break: keep-all;
     }
-    .c-file-explorer-header-text { flex: 1; }
-    .c-file-explorer-header-title { font-size: 14px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
-    .c-file-explorer-header-sub { font-size: 12px; color: var(--text-muted); }
-    .c-files-body { padding: 20px 20px 28px; }
-    .c-zip-header {
-      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
-      background: var(--input-bg); border: 1.5px solid var(--border);
-      border-radius: 10px 10px 0 0; border-bottom: none;
+    .cjv-body {
+      flex: 1; overflow-y: auto; background: #1e1e1e;
+      font-family: 'SF Mono','Fira Code','Roboto Mono',monospace;
+      font-size: 12px; line-height: 1.65;
     }
-    .c-zip-icon { font-size: 22px; flex-shrink: 0; }
-    .c-zip-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
-    .c-zip-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-    .c-uuid-warning {
-      display: flex; gap: 9px; align-items: flex-start; padding: 11px 14px;
-      background: rgba(28,25,23,0.05); border: 1px solid rgba(28,25,23,0.12); border-left-width: 3px;
-      border-left-color: var(--text-secondary);
-      font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; word-break: keep-all;
+    /* root bracket */
+    .cjv-root-line {
+      padding: 6px 16px 2px; color: #d4d4d4;
     }
-    .c-uuid-warning strong { color: var(--text-primary); }
-    .c-conv-list {
-      border: 1.5px solid var(--border); border-top: none;
-      border-radius: 0 0 10px 10px; overflow: hidden;
-      margin-bottom: 14px; max-height: 300px; overflow-y: auto;
+    .cjv-root-close { padding: 2px 16px 6px; color: #d4d4d4; }
+    /* each array item */
+    .cjv-item { border-bottom: 1px solid #2a2a2a; }
+    .cjv-item-header {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 16px; cursor: pointer; transition: background 0.1s;
     }
-    .c-conv-item {
-      display: flex; align-items: center; gap: 11px;
-      padding: 11px 14px; border-bottom: 1px solid var(--border);
-      cursor: pointer; transition: background 0.1s; user-select: none;
-    }
-    .c-conv-item:last-child { border-bottom: none; }
-    .c-conv-item:hover { background: var(--hover-bg); }
-    .c-conv-item.selected { background: var(--active-bg); }
-    .c-conv-check {
-      width: 17px; height: 17px; border-radius: 4px; border: 1.5px solid var(--border);
+    .cjv-item-header:hover { background: #2a2a2a; }
+    .cjv-item.selected > .cjv-item-header { background: #1a3a1a; }
+    .cjv-chevron { color: #888; font-size: 10px; width: 12px; flex-shrink: 0; transition: transform 0.15s; user-select: none; }
+    .cjv-item.open > .cjv-item-header > .cjv-chevron { transform: rotate(90deg); }
+    .cjv-index { color: #888; min-width: 26px; }
+    .cjv-name-val { color: #ce9178; }          /* string: orange */
+    .cjv-name-empty { color: #666; font-style: italic; } /* empty string */
+    .cjv-key { color: #9cdcfe; }               /* key: light blue */
+    .cjv-str { color: #ce9178; }               /* string value */
+    .cjv-num { color: #b5cea8; }               /* number: green */
+    .cjv-null { color: #888; font-style: italic; }
+    .cjv-check {
+      width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid #555;
       flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 700; transition: all 0.15s;
+      font-size: 9px; color: #fff; transition: all 0.12s; margin-left: auto;
     }
-    .c-conv-item.selected .c-conv-check { background: #1C1917; border-color: #1C1917; color: #fff; }
-    .c-conv-uuid {
-      font-family: 'SF Mono', 'Fira Code', 'Roboto Mono', monospace;
-      font-size: 11.5px; color: var(--text-secondary); letter-spacing: 0.02em; margin-bottom: 2px;
+    .cjv-item.selected .cjv-check { background: #4caf50; border-color: #4caf50; }
+    /* expanded content */
+    .cjv-fields { display: none; padding: 2px 0 4px 40px; }
+    .cjv-item.open .cjv-fields { display: block; }
+    .cjv-field-row { padding: 1px 16px 1px 0; display: flex; gap: 6px; align-items: baseline; }
+    .cjv-field-key { color: #9cdcfe; white-space: nowrap; }
+    .cjv-field-val { color: #ce9178; word-break: break-all; }
+    .cjv-field-val.num { color: #b5cea8; }
+    .cjv-field-val.null { color: #888; font-style: italic; }
+    /* messages sub-tree */
+    .cjv-msgs-toggle {
+      display: flex; align-items: center; gap: 4px; cursor: pointer;
+      padding: 2px 0; color: #9cdcfe; transition: color 0.1s;
     }
-    .c-conv-snippet { font-size: 12px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .c-conv-snippet.has-preview { color: var(--text-muted); }
-    .c-conv-snippet.no-preview { color: #a09990; font-style: italic; }
-    .c-conv-info { flex: 1; min-width: 0; }
-    .c-preview-badge {
-      font-size: 11px; font-weight: 600; color: var(--text-secondary);
-      background: var(--hover-bg); border: 1px solid var(--border);
-      padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    .cjv-msgs-toggle:hover { color: #cce; }
+    .cjv-msgs-chevron { color: #888; font-size: 10px; width: 12px; transition: transform 0.15s; }
+    .cjv-msgs-wrap.open .cjv-msgs-chevron { transform: rotate(90deg); }
+    .cjv-msgs-list { display: none; padding-left: 16px; }
+    .cjv-msgs-wrap.open .cjv-msgs-list { display: block; }
+    .cjv-msg-entry { padding: 3px 0; border-left: 2px solid #333; padding-left: 10px; margin: 2px 0; }
+    .cjv-msg-sender-human { color: #569cd6; }
+    .cjv-msg-sender-ai { color: #888; }
+    .cjv-msg-text { color: #ce9178; font-size: 11.5px; display: block; word-break: break-all; }
+    /* footer */
+    .cjv-footer {
+      padding: 10px 16px; background: #252526; border-top: 1px solid #3a3a3a;
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
     }
-    .c-conv-wrap { border-bottom: 1px solid var(--border); }
-    .c-conv-wrap:last-child { border-bottom: none; }
-    .c-conv-item { border-bottom: none; }
-    .c-conv-folder-area {
-      display: flex; align-items: center; gap: 4px; flex-shrink: 0; cursor: pointer;
-      padding: 2px 4px; border-radius: 5px; transition: background 0.12s; margin-right: 2px;
+    .cjv-status { font-size: 12px; color: #888; flex: 1; }
+    .cjv-status strong { color: #d4d4d4; }
+    .cjv-upload-btn {
+      padding: 8px 20px; border-radius: 6px; border: none; background: #333;
+      color: #888; font-size: 13px; font-weight: 600; font-family: inherit; cursor: not-allowed;
+      transition: background 0.2s, color 0.2s;
     }
-    .c-conv-folder-area:hover { background: var(--hover-bg); }
-    .c-expand-chevron {
-      width: 13px; height: 13px; color: var(--text-muted); flex-shrink: 0;
-      transition: transform 0.2s ease;
-    }
-    .c-expand-chevron.open { transform: rotate(90deg); }
-    .c-conv-json-panel {
-      display: none; background: #1e1e1e; border-top: 1px solid rgba(255,255,255,0.06);
-    }
-    .c-conv-json-panel.open { display: block; }
-    .c-conv-json-pre {
-      margin: 0; padding: 14px 16px; font-family: 'SF Mono','Fira Code','Roboto Mono',monospace;
-      font-size: 11.5px; line-height: 1.6; color: #d4d4d4; overflow-x: auto;
-      white-space: pre; word-break: normal;
-    }
-    .c-select-status { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; }
-    .c-select-status strong { color: var(--text-primary); }
+    .cjv-upload-btn.ready { background: #4caf50; color: #fff; cursor: pointer; }
+    .cjv-upload-btn.ready:hover { background: #43a047; }
+    .c-select-status { display: none; } /* replaced by cjv-status */
 
     /* C step indicator — compact 5 steps */
     #c-step-ind.five-steps { padding: 10px 14px; }
@@ -2853,30 +2852,27 @@ Output:
 
     <!-- Step 5: Claude file explorer (conversation selection) -->
     <div id="cond-c-files">
-      <div class="c-files-inner">
-        <div class="c-file-explorer-header">
-          <div class="c-file-explorer-header-logo" style="background:#1a73e8;font-size:16px">✦</div>
-          <div class="c-file-explorer-header-text">
-            <div class="c-file-explorer-header-title">파일 탐색</div>
-            <div class="c-file-explorer-header-sub">선택한 대화만 업로드합니다</div>
-          </div>
-        </div>
-        <div class="c-files-body">
-          <div class="c-zip-header">
-            <div class="c-zip-icon">🗜️</div>
-            <div>
-              <div class="c-zip-name">chatgpt_export_2024.zip</div>
-              <div class="c-zip-sub">대화 폴더 7개 포함</div>
-            </div>
-          </div>
-          <div class="c-uuid-warning">
-            <span style="font-size:14px;flex-shrink:0">⚠</span>
-            <div>폴더 이름은 <strong>대화 ID로만 표시됩니다.</strong> 내용을 확인하려면 각각 직접 열어봐야 합니다.</div>
-          </div>
-          <div class="c-conv-list" id="c-conv-list"><!-- populated by JS --></div>
-          <div class="c-select-status" id="c-select-status">선택된 대화: <strong>0개</strong></div>
-          <button id="c-upload-btn" disabled onclick="submitCUpload()">대화를 선택하면 업로드할 수 있습니다</button>
-        </div>
+      <!-- Header -->
+      <div class="cjv-header">
+        <span class="cjv-header-icon">📋</span>
+        <span class="cjv-header-name">conversations.json</span>
+        <span class="cjv-header-meta">10.2 MB · 44 items</span>
+      </div>
+      <!-- Warning -->
+      <div class="cjv-warning">
+        <span>⚠</span>
+        <span>일부 대화는 <strong>"name": ""</strong> 으로 표시됩니다. 내용을 확인하려면 항목을 직접 열어봐야 합니다.</span>
+      </div>
+      <!-- JSON body -->
+      <div class="cjv-body">
+        <div class="cjv-root-line">[</div>
+        <div id="cjv-list"><!-- JS로 생성 --></div>
+        <div class="cjv-root-close">]</div>
+      </div>
+      <!-- Footer -->
+      <div class="cjv-footer">
+        <span class="cjv-status" id="cjv-status">선택된 대화: <strong>0개</strong></span>
+        <button class="cjv-upload-btn" id="c-upload-btn" onclick="submitCUpload()">업로드</button>
       </div>
     </div>
 
@@ -3930,51 +3926,101 @@ function addToClaudeMemory() { addBGMemory(); }
 function checkBResponse() {}
 
 // ── CONDITION C — Full Realistic Export Flow ────────────
+// ── Condition C: conversations.json mock data (based on real structure) ──
 const C_CONVS = [
-  { id: '3d7e1b02f9a4c883', snippet: '"제 이름은 연구 참여자이고, UX 연구자입니다. 앞으로..."', preview: true },
-  { id: '7c4a9d5e2f81b174', snippet: '"앞으로 답변할 때는 항상 개조식으로 정리하고..."',        preview: true },
-  { id: '9b3f2e7c1d04a562', snippet: '"지금 진행 중인 AI 이사 연구에 대해서 설명하면..."',      preview: true },
-  { id: '2e8d5a1f4c937b45', snippet: null, preview: false },
-  { id: '6f1c3b8e9d20a714', snippet: null, preview: false },
+  { uuid: "72e431c8-00fe-4f7d-8532-e657d8da3ba4", name: "페인포인트에서 핵심 질문으로 연결하기",
+    created_at: "2026-02-25T15:34:49Z", updated_at: "2026-02-25T16:01:22Z",
+    chat_messages: [
+      { sender: "human",     text: "이거 튠에서처럼 페인포인트 → 핵심 질문 → 인사이트 이렇게 연결되는 게 더 자연스러워 보여. 핵심 질문을 제안해줄래?" },
+      { sender: "assistant", text: "좋은 접근이에요. 페인포인트에서 핵심 질문으로 이어지는 구조는 사용자 리서치에서 매우 효과적입니다..." }
+    ]
+  },
+  { uuid: "10e44a38-72f1-449e-b20e-163f70f2f099", name: "AI 기반 금융 경험 포트폴리오 프로젝트 기획",
+    created_at: "2026-02-18T09:14:52Z", updated_at: "2026-02-18T10:03:41Z",
+    chat_messages: [
+      { sender: "human",     text: "너는 네이버나 토스 같은 Tech-driven 기업의 UX 리서치 리드야. 나는 HCI와 HRI 배경을 가진 UX 디자이너로서 포트폴리오에 넣을 'AI 기반 금융 경험' 프로젝트를 기획 중이야." },
+      { sender: "assistant", text: "흥미로운 주제입니다. AI 기반 금융 UX는 현재 핀테크 업계에서 가장 주목받는 분야 중 하나입니다..." }
+    ]
+  },
+  { uuid: "401020e8-ada9-4846-a017-d315b9ebfc9b", name: "Greeting",
+    created_at: "2026-02-25T15:12:34Z", updated_at: "2026-02-25T15:12:50Z",
+    chat_messages: [
+      { sender: "human",     text: "hi" },
+      { sender: "assistant", text: "Hello! How can I help you today?" }
+    ]
+  },
+  { uuid: "f3b89d21-cc4e-41a7-9e02-5d8f1a3c7b90", name: "",
+    created_at: "2026-02-09T14:22:10Z", updated_at: "2026-02-09T14:55:33Z",
+    chat_messages: [
+      { sender: "human",     text: "Essay paragraph analysis and feedback — can you check my argument structure?" },
+      { sender: "assistant", text: "Sure, I'd be happy to review your argument structure. Please share the paragraph." }
+    ]
+  },
+  { uuid: "a7c34f12-8e5b-4d91-b203-9f6e2d0c1a47", name: "석사논문 2개월 완성 가능성",
+    created_at: "2026-02-27T11:08:22Z", updated_at: "2026-02-27T13:45:09Z",
+    chat_messages: [
+      { sender: "human",     text: "석사 논문을 2개월 안에 완성하는 게 현실적으로 가능할까? 지금 연구 설계 단계야." },
+      { sender: "assistant", text: "2개월은 매우 타이트하지만 불가능하지는 않습니다. 연구 범위를 명확히 제한하고..." },
+      { sender: "human",     text: "그럼 가장 먼저 해야 할 일이 뭐야?" },
+      { sender: "assistant", text: "가장 먼저 해야 할 일은 연구 질문(Research Question)을 단 하나로 좁히는 것입니다..." }
+    ]
+  },
+  { uuid: "3d8c1a09-f742-4e6b-8b35-2c9d0e5f7a11", name: "링크드인 헤드라인 제안",
+    created_at: "2026-03-08T09:30:00Z", updated_at: "2026-03-08T10:12:44Z",
+    chat_messages: [
+      { sender: "human",     text: "나 링크드인 헤드라인 어떻게 쓰면 좋을까? HCI 연구자이자 UX 디자이너인데." },
+      { sender: "assistant", text: "헤드라인은 검색 최적화와 첫인상 둘 다 고려해야 합니다. 몇 가지 제안을 드릴게요..." }
+    ]
+  },
+  { uuid: "c92e4b17-3f85-4a20-9d61-8e0f2c1d5b33", name: "",
+    created_at: "2026-03-26T14:22:08Z", updated_at: "2026-03-26T19:44:57Z",
+    chat_messages: [
+      { sender: "human",     text: "연구 참여자 모집 공고 문구 써줘. IRB 승인 받은 연구야." },
+      { sender: "assistant", text: "네, 아래와 같이 작성해 드리겠습니다..." },
+      { sender: "human",     text: "더 간결하게 줄여줘" },
+      { sender: "assistant", text: "물론이죠. 핵심만 남긴 버전입니다..." }
+    ]
+  },
+  { uuid: "e81f2d44-9a63-4b78-c105-7d3e0b8f9c22", name: "인턴 마지막 날 상사 미팅 질문",
+    created_at: "2026-02-27T08:55:12Z", updated_at: "2026-02-27T09:30:48Z",
+    chat_messages: [
+      { sender: "human",     text: "인턴십 마지막 날 상사와 미팅이 있어. 어떤 질문을 하면 좋을까?" },
+      { sender: "assistant", text: "마지막 미팅에서 좋은 인상을 남길 수 있는 질문들을 제안해 드릴게요..." }
+    ]
+  },
+  { uuid: "b47a9e05-2c1f-4d83-a671-0f8e5c3d2b90", name: "인턴 종료 인사 메일 작성",
+    created_at: "2026-02-27T16:20:33Z", updated_at: "2026-02-27T18:55:07Z",
+    chat_messages: [
+      { sender: "human",     text: "인턴십 마무리 인사 메일 써줘. 팀원들한테 보낼 거야." },
+      { sender: "assistant", text: "감사한 마음이 전달되는 인사 메일 초안을 작성해 드릴게요..." },
+      { sender: "human",     text: "좀 더 따뜻한 톤으로 바꿔줘" },
+      { sender: "assistant", text: "네, 더 따뜻하고 개인적인 느낌으로 수정했습니다..." }
+    ]
+  },
+  { uuid: "d15c8b32-7e4a-4f96-b289-3a1d0c6e8f44", name: "",
+    created_at: "2025-04-02T10:11:00Z", updated_at: "2025-04-02T10:45:22Z",
+    chat_messages: [
+      { sender: "human",     text: "Theoretical Foundations of Multi-Agent AI Systems — can you summarize the key papers?" },
+      { sender: "assistant", text: "I'll summarize the key theoretical foundations. The field builds on several landmark works..." }
+    ]
+  },
+  { uuid: "9f2e1a78-5b3c-4d07-8e90-2f6d4c1b3a55", name: "좋은 석사 논문의 조건",
+    created_at: "2026-04-05T13:45:00Z", updated_at: "2026-04-05T14:22:18Z",
+    chat_messages: [
+      { sender: "human",     text: "좋은 석사 논문의 조건이 뭐야? HCI 분야 기준으로." },
+      { sender: "assistant", text: "HCI 분야의 좋은 석사 논문은 몇 가지 핵심 조건을 갖춰야 합니다..." }
+    ]
+  },
+  { uuid: "7a4f0e23-1b8d-4c56-9d72-5e3a2f0c8b11", name: "",
+    created_at: "2026-04-06T09:00:00Z", updated_at: "2026-04-06T09:15:33Z",
+    chat_messages: [
+      { sender: "human",     text: "이전 대화 내용 요약해줘" },
+      { sender: "assistant", text: "이전 대화를 요약하면 다음과 같습니다..." }
+    ]
+  },
 ];
 
-const C_CONV_JSON = [
-  { id:"3d7e1b02f9a4c883", title:null, create_time:1706745600.532, update_time:1706749234.112,
-    current_node:"node_b2c3", is_archived:false,
-    mapping:{
-      "node_a1b2":{ id:"node_a1b2", message:{ author:{role:"user"}, content:{content_type:"text", parts:["제 이름은 연구 참여자이고, UX 연구자입니다. 앞으로 저에 대해 기억해 두세요."]}}, children:["node_b2c3"] },
-      "node_b2c3":{ id:"node_b2c3", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["안녕하세요! UX 연구자이시군요. 앞으로 잘 기억해 두겠습니다. 무엇을 도와드릴까요?"]}}, children:[] }
-    }
-  },
-  { id:"7c4a9d5e2f81b174", title:null, create_time:1707350400.221, update_time:1707354012.889,
-    current_node:"node_d4e5", is_archived:false,
-    mapping:{
-      "node_c3d4":{ id:"node_c3d4", message:{ author:{role:"user"}, content:{content_type:"text", parts:["앞으로 답변할 때는 항상 개조식으로 정리하고, 영어 용어는 한국어를 병기해줘."]}}, children:["node_d4e5"] },
-      "node_d4e5":{ id:"node_d4e5", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["알겠습니다. 이후 답변은 개조식으로 정리하고 영어 용어에 한국어를 병기하겠습니다."]}}, children:[] }
-    }
-  },
-  { id:"9b3f2e7c1d04a562", title:null, create_time:1707955200.441, update_time:1707962401.007,
-    current_node:"node_f6g7", is_archived:false,
-    mapping:{
-      "node_e5f6":{ id:"node_e5f6", message:{ author:{role:"user"}, content:{content_type:"text", parts:["지금 진행 중인 AI 이사 연구에 대해서 설명하면, 사용자가 다른 LLM으로 이전할 때 어떤 경험을 하는지 연구하고 있어."]}}, children:["node_f6g7"] },
-      "node_f6g7":{ id:"node_f6g7", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["흥미로운 연구 주제네요. AI 마이그레이션 경험은 HCI 분야에서 아직 충분히 탐구되지 않은 영역입니다."]}}, children:[] }
-    }
-  },
-  { id:"2e8d5a1f4c937b45", title:null, create_time:1708560000.113, update_time:1708563601.445,
-    current_node:"node_h8i9", is_archived:false,
-    mapping:{
-      "node_g7h8":{ id:"node_g7h8", message:{ author:{role:"user"}, content:{content_type:"text", parts:["다음 내용을 표로 정리해줘."]}}, children:["node_h8i9"] },
-      "node_h8i9":{ id:"node_h8i9", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["네, 표 형식으로 정리해 드리겠습니다."]}}, children:[] }
-    }
-  },
-  { id:"6f1c3b8e9d20a714", title:null, create_time:1709164800.887, update_time:1709168400.223,
-    current_node:"node_j9k0", is_archived:false,
-    mapping:{
-      "node_i9j0":{ id:"node_i9j0", message:{ author:{role:"user"}, content:{content_type:"text", parts:["이 논문 요약해줘."]}}, children:["node_j9k0"] },
-      "node_j9k0":{ id:"node_j9k0", message:{ author:{role:"assistant"}, content:{content_type:"text", parts:["논문 요약 결과입니다. 주요 주장과 방법론을 정리해 드리겠습니다."]}}, children:[] }
-    }
-  },
-];
+// 실제 구조 그대로 반영: account uuid는 반복되며, 일부는 name이 빈 문자열
 
 let cSelected = new Set();
 let isRedoMode = false;
@@ -4153,85 +4199,116 @@ function openCExtractedFolder() {
 function proceedToCFileSelect() {
   setCStepIndicator(5);
   document.getElementById('cond-c-finder').style.display = 'none';
-  buildCConvList();
-  document.getElementById('cond-c-files').style.display = 'block';
+  buildCJsonViewer();
+  document.getElementById('cond-c-files').style.display = 'flex';
 }
 
-function buildCConvList() {
+function buildCJsonViewer() {
   cSelected = new Set();
-  const list = document.getElementById('c-conv-list');
+  const list = document.getElementById('cjv-list');
+  list.innerHTML = '';
 
-  list.innerHTML = C_CONVS.map((conv, i) => `
-    <div class="c-conv-wrap" id="c-wrap-${i}">
-      <div class="c-conv-item" id="c-conv-${i}">
-        <div class="c-conv-check" id="c-chk-${i}" onclick="event.stopPropagation(); toggleCConv(${i})"></div>
-        <div class="c-conv-folder-area" onclick="toggleCConvExpand(${i})" title="JSON 내용 보기">
-          <span style="font-size:15px;line-height:1">📁</span>
-          <svg class="c-expand-chevron" id="c-chevron-${i}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 4l4 4-4 4"/>
-          </svg>
-        </div>
-        <div class="c-conv-info" onclick="toggleCConv(${i})" style="cursor:pointer">
-          <div class="c-conv-uuid">${conv.id}...</div>
-          <div class="c-conv-snippet ${conv.preview ? 'has-preview' : 'no-preview'}">
-            ${conv.preview ? conv.snippet : '내용을 확인하려면 파일을 직접 열어야 합니다'}
-          </div>
-        </div>
-        ${conv.preview ? '<div class="c-preview-badge">미리보기 가능</div>' : ''}
-      </div>
-      <div class="c-conv-json-panel" id="c-json-${i}">
-        <pre class="c-conv-json-pre" id="c-json-pre-${i}"></pre>
-      </div>
-    </div>
-  `).join('');
+  C_CONVS.forEach((conv, i) => {
+    const hasName = conv.name && conv.name.trim() !== '';
+    const msgCount = conv.chat_messages.length;
 
-  C_CONVS.forEach((_, i) => {
-    const pre = document.getElementById('c-json-pre-' + i);
-    if (pre) pre.textContent = JSON.stringify(C_CONV_JSON[i], null, 2);
+    const item = document.createElement('div');
+    item.className = 'cjv-item';
+    item.id = 'cjv-item-' + i;
+
+    // header row
+    const header = document.createElement('div');
+    header.className = 'cjv-item-header';
+    header.onclick = () => toggleCJsonItem(i);
+    header.innerHTML = `
+      <span class="cjv-chevron">▶</span>
+      <span class="cjv-index">[${i}]</span>
+      <span style="color:#888">{</span>
+      <span class="cjv-key">&nbsp;"uuid"</span><span style="color:#888">:&nbsp;</span><span class="cjv-str">"${conv.uuid}"</span><span style="color:#888">,&nbsp;</span>
+      <span class="cjv-key">"name"</span><span style="color:#888">:&nbsp;</span>${hasName ? `<span class="cjv-name-val">"${conv.name.length > 30 ? conv.name.slice(0,30)+'…' : conv.name}"</span>` : `<span class="cjv-name-empty">""</span>`}<span style="color:#888">,&nbsp;</span>
+      <span style="color:#888">... }</span>
+      <span class="cjv-check" id="cjv-chk-${i}" onclick="event.stopPropagation(); toggleCJsonSelect(${i})"></span>`;
+
+    // expanded fields
+    const fields = document.createElement('div');
+    fields.className = 'cjv-fields';
+    fields.id = 'cjv-fields-' + i;
+
+    // Build messages sub-tree
+    const msgsHtml = conv.chat_messages.map((m, mi) => `
+      <div class="cjv-msg-entry">
+        <span class="${m.sender === 'human' ? 'cjv-msg-sender-human' : 'cjv-msg-sender-ai'}">"sender": "${m.sender}"</span><br>
+        <span class="cjv-msg-text">"text": "${m.text.length > 90 ? m.text.slice(0,90)+'…' : m.text}"</span>
+      </div>`).join('');
+
+    fields.innerHTML = `
+      <div class="cjv-field-row"><span class="cjv-field-key">"uuid":</span><span class="cjv-field-val">"${conv.uuid}"</span></div>
+      <div class="cjv-field-row"><span class="cjv-field-key">"name":</span><span class="cjv-field-val">${hasName ? '"'+conv.name+'"' : '<span style="color:#666;font-style:italic">""</span>'}</span></div>
+      <div class="cjv-field-row"><span class="cjv-field-key">"summary":</span><span class="cjv-field-val null">""</span></div>
+      <div class="cjv-field-row"><span class="cjv-field-key">"created_at":</span><span class="cjv-field-val">"${conv.created_at}"</span></div>
+      <div class="cjv-field-row"><span class="cjv-field-key">"updated_at":</span><span class="cjv-field-val">"${conv.updated_at}"</span></div>
+      <div class="cjv-field-row"><span class="cjv-field-key">"account":</span><span class="cjv-field-val">{ "uuid": "1187747e-0962-4177-9c08-277bcfcdec30" }</span></div>
+      <div class="cjv-msgs-wrap" id="cjv-msgs-wrap-${i}">
+        <div class="cjv-msgs-toggle" onclick="toggleCMsgs(${i})">
+          <span class="cjv-msgs-chevron">▶</span>
+          <span class="cjv-key">"chat_messages"</span><span style="color:#888">: [</span>
+          <span style="color:#888;font-size:11px;margin-left:4px">${msgCount} item${msgCount !== 1 ? 's' : ''}</span>
+          <span style="color:#888">]</span>
+        </div>
+        <div class="cjv-msgs-list" id="cjv-msgs-${i}">${msgsHtml}</div>
+      </div>`;
+
+    item.appendChild(header);
+    item.appendChild(fields);
+    list.appendChild(item);
   });
 
-  updateCUploadBtn();
+  updateCJsonUploadBtn();
 }
 
-function toggleCConvExpand(i) {
-  const panel   = document.getElementById('c-json-' + i);
-  const chevron = document.getElementById('c-chevron-' + i);
-  if (!panel) return;
-  const isOpen = panel.classList.toggle('open');
-  if (chevron) chevron.classList.toggle('open', isOpen);
+function toggleCJsonItem(i) {
+  const item = document.getElementById('cjv-item-' + i);
+  if (!item) return;
+  item.classList.toggle('open');
 }
 
-function toggleCConv(i) {
-  const item  = document.getElementById('c-conv-' + i);
-  const check = document.getElementById('c-chk-'  + i);
+function toggleCMsgs(i) {
+  const wrap = document.getElementById('cjv-msgs-wrap-' + i);
+  if (wrap) wrap.classList.toggle('open');
+}
+
+function toggleCJsonSelect(i) {
+  const item = document.getElementById('cjv-item-' + i);
+  const chk  = document.getElementById('cjv-chk-' + i);
+  if (!item) return;
   if (cSelected.has(i)) {
     cSelected.delete(i);
     item.classList.remove('selected');
-    check.textContent = '';
+    chk.textContent = '';
   } else {
     cSelected.add(i);
     item.classList.add('selected');
-    check.textContent = '✓';
+    chk.textContent = '✓';
   }
-  updateCUploadBtn();
+  updateCJsonUploadBtn();
 }
 
-function updateCUploadBtn() {
+function updateCJsonUploadBtn() {
   const count = cSelected.size;
-  document.getElementById('c-select-status').innerHTML =
-    `선택된 대화: <strong>${count}개</strong>`;
-  const btn = document.getElementById('c-upload-btn');
-  btn.disabled = count === 0;
+  const status = document.getElementById('cjv-status');
+  const btn    = document.getElementById('c-upload-btn');
+  if (status) status.innerHTML = `선택된 대화: <strong>${count}개</strong>`;
+  if (!btn) return;
   if (count > 0) {
     btn.classList.add('ready');
-    btn.textContent = `선택한 대화 ${count}개를 업로드하기 →`;
-    setHint('c-upload-btn', 'orange');
+    btn.textContent = `${count}개 대화 업로드 →`;
   } else {
     btn.classList.remove('ready');
-    btn.textContent = '대화를 선택하면 업로드할 수 있습니다';
-    clearHint('c-upload-btn');
+    btn.textContent = '업로드';
   }
 }
+
+function updateCUploadBtn() { updateCJsonUploadBtn(); } // alias
 
 function submitCUpload() {
   if (cSelected.size === 0) return;
