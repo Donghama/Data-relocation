@@ -494,6 +494,10 @@
       border: none; border-radius: 10px; font-size: 14.5px; font-weight: 600;
       cursor: pointer; font-family: inherit; margin-top: 10px;
     }
+    .csi-bar { display: flex; align-items: center; justify-content: center; gap: 0; }
+    #a-step-ind .csi-item.active .csi-num { background: #1f1f1f; color: #fff; }
+    #a-step-ind .csi-item.active .csi-label { color: #1f1f1f; }
+    #a-step-ind .csi-item.done .csi-num { background: #1f1f1f; color: #fff; }
     @keyframes aSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes aFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -1781,19 +1785,7 @@
     .briefing-proceed-btn.b { background: #1C1917; color: #fff; }
     .briefing-proceed-btn.c { background: #1C1917; color: #fff; }
 
-    /* Condition A — disable button until sequence finishes */
-    #a-done-btn {
-      margin-top: 28px;
-      padding: 11px 28px; border: none; border-radius: 10px;
-      font-size: 13.5px; font-weight: 700; font-family: inherit; cursor: pointer;
-      background: var(--hover-bg); color: var(--text-muted);
-      transition: background 0.3s, color 0.3s;
-      pointer-events: none;
-    }
-    #a-done-btn.unlocked {
-      background: #1C1917; color: #fff; pointer-events: auto;
-    }
-    #a-done-btn.unlocked:hover { background: #333; }
+    /* Condition A done button — handled by .a-done-btn class */
 
     /* ── ACTION HINTS ── */
     /* Pulsing glow on buttons that are the next required action */
