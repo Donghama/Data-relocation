@@ -3763,12 +3763,6 @@ function startCondB() {
   const dd = document.getElementById('b-g-profile-dropdown');
   if (dd) dd.classList.remove('open');
 
-  // Reset textarea
-  const ta = document.getElementById('b-g-response-textarea');
-  if (ta) ta.value = '';
-  const addBtn = document.getElementById('b-g-add-memory-btn');
-  if (addBtn) addBtn.disabled = true;
-
   // Reset copy button
   const copyBtn = document.getElementById('b-g-copy-btn');
   if (copyBtn) { copyBtn.className = 'b-g-copy-btn'; copyBtn.textContent = '📋 복사'; }
