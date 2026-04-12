@@ -387,102 +387,115 @@
     }
     #cond-a.open { display: flex; }
     .a-modal {
-      background: var(--main-bg); border-radius: 16px; width: 700px; max-width: 96vw;
-      max-height: 92vh; overflow-y: auto;
+      background: #ffffff; border-radius: 16px; width: 920px; max-width: 96vw;
+      max-height: 92vh; overflow: hidden;
       padding: 0; box-shadow: 0 12px 50px rgba(0,0,0,0.6);
-      display: flex; flex-direction: column; align-items: center; gap: 0;
+      display: flex; flex-direction: column;
     }
-
-    .a-stage {
-      display: flex; align-items: center; justify-content: center; gap: 60px;
-      width: 100%; padding: 32px 40px 0; margin-bottom: 32px;
+    .a-ai-panel {
+      flex: 1; overflow-y: auto; background: #ffffff;
+      padding: 32px 24px; display: flex; align-items: center; justify-content: center;
     }
-
-    /* Pulsing visualizer */
-    .viz-wrap { position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .viz-ring {
-      position: absolute; border-radius: 50%; border: 2px solid;
-      animation: pRing 2s ease-out infinite;
+    .a-step-card {
+      background: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px;
+      padding: 32px; width: 100%; max-width: 580px;
     }
-    .viz-core {
-      width: 72px; height: 72px; border-radius: 50%;
-      position: relative; z-index: 2;
-      /* Pure CSS — no emoji */
+    .a-card-title { font-size: 18px; font-weight: 600; color: #1f1f1f; margin-bottom: 6px; }
+    .a-card-sub { font-size: 13px; color: #444746; margin-bottom: 24px; }
+    .a-mcp-diagram {
+      display: flex; align-items: center; justify-content: center; gap: 0;
+      margin-bottom: 28px; padding: 20px; background: #f8f9fa; border-radius: 12px;
     }
-    .viz-label {
-      position: absolute; bottom: -28px; font-size: 11px; font-weight: 500;
-      letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+    .a-mcp-node { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 80px; }
+    .a-mcp-node-icon {
+      width: 48px; height: 48px; border-radius: 50%; border: 2px solid #e0e0e0;
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; transition: all 0.3s ease;
     }
-
-    /* Source (blue) */
-    .viz-wrap.src .viz-core { background: #333333; box-shadow: 0 0 28px rgba(0,0,0,0.25); }
-    .viz-wrap.src .viz-ring { border-color: rgba(51,51,51,0.4); }
-    .viz-wrap.src .viz-ring:nth-child(1) { width: 90px; height: 90px; animation-delay: 0s; }
-    .viz-wrap.src .viz-ring:nth-child(2) { width: 120px; height: 120px; animation-delay: 0.4s; }
-    .viz-wrap.src .viz-ring:nth-child(3) { width: 150px; height: 150px; animation-delay: 0.8s; }
-    .viz-wrap.src .viz-label { color: #333333; }
-
-    /* Target (green) */
-    .viz-wrap.tgt .viz-core { background: #888888; box-shadow: 0 0 28px rgba(136,136,136,0.35); }
-    .viz-wrap.tgt .viz-ring { border-color: rgba(136,136,136,0.45); }
-    .viz-wrap.tgt .viz-ring:nth-child(1) { width: 90px; height: 90px; animation-delay: 0.2s; }
-    .viz-wrap.tgt .viz-ring:nth-child(2) { width: 120px; height: 120px; animation-delay: 0.6s; }
-    .viz-wrap.tgt .viz-ring:nth-child(3) { width: 150px; height: 150px; animation-delay: 1.0s; }
-    .viz-wrap.tgt .viz-label { color: #666666; }
-
-    @keyframes pRing {
-      0% { transform: scale(0.85); opacity: 0.9; }
-      100% { transform: scale(1.4); opacity: 0; }
+    .a-mcp-node-label { font-size: 11px; color: #444746; font-weight: 500; text-align: center; }
+    .a-mcp-line {
+      flex: 1; height: 2px; background: #e0e0e0; position: relative;
+      margin: 0 8px; align-self: center;
     }
-
-    /* Stream connector */
-    .stream-connector {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      flex-shrink: 0;
+    .a-mcp-line::after {
+      content: '›'; position: absolute; right: -6px; top: 50%;
+      transform: translateY(-50%); color: #e0e0e0; font-size: 16px; line-height: 1;
     }
-    .stream-track {
-      width: 120px; height: 6px; background: var(--border);
-      border-radius: 99px; overflow: hidden;
+    .a-mcp-node.connected .a-mcp-node-icon {
+      border-color: #1f1f1f; background: #1f1f1f; color: #fff;
     }
-    .stream-bar {
-      height: 100%; width: 40%;
-      background: linear-gradient(90deg, #555, #aaa);
-      border-radius: 99px;
-      animation: sBar 1.6s ease-in-out infinite;
+    .a-storage-row {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 20px; background: #f8f9fa;
     }
-    @keyframes sBar {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(350%); }
+    .a-connect-btn {
+      width: 100%; padding: 12px; background: #1f1f1f; color: #fff; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
     }
-    .stream-pct { font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; }
-    .stream-pct-label { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
-
-    /* Captions */
-    .a-captions {
-      width: 100%; max-width: 640px;
-      max-height: 320px; overflow: hidden; position: relative;
-      padding: 0 24px 24px;
+    .a-connect-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .a-connecting-state { display: none; text-align: center; padding: 20px 0; }
+    .a-spinner {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid #e0e0e0; border-top-color: #1f1f1f;
+      display: inline-block; animation: aSpin 0.7s linear infinite;
     }
-    .a-captions-inner {
-      display: flex; flex-direction: column; gap: 10px;
+    .a-success-banner {
+      display: none; padding: 12px 16px; background: #f8f9fa; border: 1px solid #e0e0e0;
+      border-radius: 10px; margin-bottom: 16px; color: #1f1f1f; font-weight: 500;
     }
-    .caption-line {
-      display: flex; align-items: flex-start; gap: 10px;
-      opacity: 0; transform: translateY(12px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      font-size: 14px; color: var(--text-secondary); line-height: 1.55;
-      word-break: keep-all;
+    .a-next-btn {
+      display: none; width: 100%; padding: 11px; border: 1.5px solid #1f1f1f;
+      border-radius: 10px; background: #fff; color: #1f1f1f; font-size: 13.5px;
+      font-weight: 600; cursor: pointer; font-family: inherit;
     }
-    .caption-line.visible { opacity: 1; transform: translateY(0); }
-    .caption-icon {
-      width: 3px; border-radius: 99px; flex-shrink: 0;
-      align-self: stretch; margin-top: 2px;
+    .a-file-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .a-file-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      border: 1px solid #e0e0e0; border-radius: 10px; cursor: pointer; transition: background 0.15s;
     }
-    .caption-icon.s { background: #333333; }
-    .caption-icon.t { background: #888888; }
-    mark.sg { background: rgba(0,0,0,0.07); color: #333333; border-radius: 3px; padding: 0 3px; }
-    mark.tg { background: rgba(0,0,0,0.05); color: #666666; border-radius: 3px; padding: 0 3px; }
-
+    .a-file-item:hover { background: #f8f9fa; }
+    .a-file-item.checked { border-color: #1f1f1f; background: #f8f9fa; }
+    .a-file-check {
+      width: 18px; height: 18px; border: 2px solid #e0e0e0; border-radius: 5px;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .a-file-item.checked .a-file-check { background: #1f1f1f; border-color: #1f1f1f; color: #fff; }
+    .a-file-info { flex: 1; }
+    .a-file-name { font-size: 13.5px; font-weight: 500; color: #1f1f1f; }
+    .a-file-size { font-size: 11.5px; color: #444746; }
+    .a-file-prog-wrap { display: none; margin-top: 6px; }
+    .a-file-prog-track { height: 3px; background: #e0e0e0; border-radius: 99px; }
+    .a-file-prog-fill { height: 100%; background: #1f1f1f; border-radius: 99px; width: 0; transition: width 0.4s; }
+    .a-file-done { display: none; font-size: 11px; font-weight: 600; color: #1f1f1f; margin-top: 4px; }
+    .a-upload-actions {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    }
+    .a-select-all { font-size: 12.5px; color: #444746; cursor: pointer; text-decoration: underline; }
+    .a-upload-btn {
+      padding: 10px 20px; background: #1f1f1f; color: #fff; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .a-upload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .a-import-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .a-import-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      border: 1px solid #e0e0e0; border-radius: 10px;
+    }
+    .a-import-icon {
+      width: 36px; height: 36px; background: #f1f3f4; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+    }
+    .a-import-info { flex: 1; }
+    .a-import-name { font-size: 13.5px; font-weight: 500; color: #1f1f1f; }
+    .a-import-desc { font-size: 11.5px; color: #444746; }
+    .a-import-status { font-size: 12px; color: #80868b; flex-shrink: 0; }
+    .a-done-btn {
+      display: none; width: 100%; padding: 12px; background: #1f1f1f; color: #fff;
+      border: none; border-radius: 10px; font-size: 14.5px; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-top: 10px;
+    }
+    @keyframes aSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes aFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
     /* ── CONDITION B OVERLAY — Gemini-style Import Flow ── */
     #cond-b {
@@ -1687,15 +1700,6 @@
     #c-step-ind .csi-item.active .csi-label { color: #1f1f1f; }
     #c-step-ind .csi-item.done .csi-num { background: #1f1f1f; color: #fff; }
     .csi-arrow { margin: 0 10px; color: var(--border); font-size: 11px; flex-shrink: 0; }
-    /* Condition A — observation instruction bar */
-    .a-observe-bar {
-      padding: 12px 20px; text-align: center;
-      border-bottom: 1px solid var(--border);
-      font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em;
-      word-break: keep-all; border-radius: 16px 16px 0 0;
-      background: var(--hover-bg);
-    }
-
     /* ── CONDITION BRIEFING ── */
     #briefing-overlay {
       position: fixed; inset: 0; z-index: 500;
@@ -2108,41 +2112,223 @@
 <!-- ══ CONDITION A OVERLAY ══ -->
 <div id="cond-a">
   <div class="a-modal">
-    <div class="a-observe-bar">
-      조건 A — 관찰 중 &nbsp;·&nbsp; AI가 자동으로 데이터를 이전하고 있습니다. 아래 대화를 지켜보세요.
-    </div>
-    <div class="a-stage">
-      <div class="viz-wrap src">
-        <div class="viz-ring"></div>
-        <div class="viz-ring"></div>
-        <div class="viz-ring"></div>
-        <div class="viz-core"></div>
-        <span class="viz-label">ChatGPT</span>
+    <!-- Browser chrome (reuse b- classes) -->
+    <div class="b-browser-chrome">
+      <div class="b-browser-dots">
+        <div class="b-browser-dot red"></div>
+        <div class="b-browser-dot yellow"></div>
+        <div class="b-browser-dot green"></div>
       </div>
-
-      <div class="stream-connector">
-        <div class="stream-pct" id="a-pct">0%</div>
-        <div class="stream-track"><div class="stream-bar"></div></div>
-        <div class="stream-pct-label">이전 중</div>
-      </div>
-
-      <div class="viz-wrap tgt">
-        <div class="viz-ring"></div>
-        <div class="viz-ring"></div>
-        <div class="viz-ring"></div>
-        <div class="viz-core"></div>
-        <span class="viz-label">Claude</span>
+      <div class="b-browser-tabs">
+        <div class="b-browser-tab active" id="a-tab-src" onclick="switchATab('source')">
+          <div class="b-browser-tab-favicon">A</div>
+          <span class="b-browser-tab-label">기존 AI</span>
+          <div class="b-browser-tab-pulse"></div>
+        </div>
+        <div class="b-browser-tab" id="a-tab-dst" onclick="switchATab('dest')">
+          <div class="b-browser-tab-favicon">B</div>
+          <span class="b-browser-tab-label">옮길 AI</span>
+          <div class="b-browser-tab-pulse"></div>
+        </div>
       </div>
     </div>
 
-    <div class="a-captions">
-      <div class="a-captions-inner" id="a-captions-inner"></div>
+    <!-- Step indicator (reuse csi- classes) -->
+    <div id="a-step-ind" class="csi-bar" style="padding:10px 20px; border-bottom:1px solid #e0e0e0; background:#f8f9fa; flex-shrink:0;">
+      <div class="csi-item active" data-step="1"><div class="csi-num">1</div><div class="csi-label">MCP 연결<br><small style="font-weight:400;color:#80868b">기존 AI</small></div></div>
+      <div class="csi-arrow">›</div>
+      <div class="csi-item" data-step="2"><div class="csi-num">2</div><div class="csi-label">파일 업로드</div></div>
+      <div class="csi-arrow">›</div>
+      <div class="csi-item" data-step="3"><div class="csi-num">3</div><div class="csi-label">탭 전환</div></div>
+      <div class="csi-arrow">›</div>
+      <div class="csi-item" data-step="4"><div class="csi-num">4</div><div class="csi-label">MCP 연결<br><small style="font-weight:400;color:#80868b">옮길 AI</small></div></div>
+      <div class="csi-arrow">›</div>
+      <div class="csi-item" data-step="5"><div class="csi-num">5</div><div class="csi-label">데이터 불러오기</div></div>
     </div>
 
-    <!-- Interlock button — locked until full sequence completes -->
-    <button id="a-done-btn" onclick="condAComplete()" style="margin-bottom:28px;">
-      ⏳ 이전 완료 대기 중...
-    </button>
+    <!-- Source AI Panel -->
+    <div id="a-panel-src" class="a-ai-panel">
+      <!-- Step 1: MCP Connect -->
+      <div id="a-s1" class="a-step-card">
+        <div class="a-card-title">MCP 서버 연결</div>
+        <div class="a-card-sub">기존 AI와 클라우드 스토리지를 연결합니다</div>
+        <div class="a-mcp-diagram" id="a-s1-diagram">
+          <div class="a-mcp-node" id="a-s1-node-ai">
+            <div class="a-mcp-node-icon">✦</div>
+            <div class="a-mcp-node-label">기존 AI</div>
+          </div>
+          <div class="a-mcp-line"></div>
+          <div class="a-mcp-node" id="a-s1-node-mcp">
+            <div class="a-mcp-node-icon" style="font-size:11px;font-weight:700;letter-spacing:-0.02em">MCP</div>
+            <div class="a-mcp-node-label">프로토콜</div>
+          </div>
+          <div class="a-mcp-line"></div>
+          <div class="a-mcp-node" id="a-s1-node-cloud">
+            <div class="a-mcp-node-icon">☁</div>
+            <div class="a-mcp-node-label">클라우드</div>
+          </div>
+        </div>
+        <div class="a-storage-row">
+          <span style="font-size:20px">☁</span>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:500;color:#1f1f1f">클라우드 드라이브</div>
+            <div style="font-size:11.5px;color:#444746">클라우드 스토리지 서비스</div>
+          </div>
+          <span style="font-size:14px;color:#80868b">🔒</span>
+        </div>
+        <div class="a-connecting-state" id="a-s1-connecting">
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px">
+            <div class="a-spinner"></div>
+            <span style="font-size:13.5px;color:#444746">연결 중...</span>
+          </div>
+          <div style="font-size:12px;color:#80868b" id="a-s1-connect-msg">인증 확인 중...</div>
+        </div>
+        <div class="a-success-banner" id="a-s1-success">✓ 클라우드 드라이브에 연결되었습니다</div>
+        <button class="a-connect-btn" id="a-s1-btn" onclick="aStep1Connect()">연결하기</button>
+        <button class="a-next-btn" id="a-s1-next" onclick="aGoStep2()" style="margin-top:10px">다음: 파일 업로드 →</button>
+      </div>
+
+      <!-- Step 2: File Upload -->
+      <div id="a-s2" class="a-step-card" style="display:none">
+        <div class="a-card-title">클라우드에 파일 업로드</div>
+        <div class="a-card-sub">AI 데이터를 클라우드 스토리지에 업로드하세요</div>
+        <div class="a-upload-actions">
+          <span class="a-select-all" onclick="aSelectAllFiles()">전체 선택</span>
+          <button class="a-upload-btn" id="a-upload-btn" onclick="aStartUpload()" disabled>업로드 시작</button>
+        </div>
+        <div class="a-file-list" id="a-file-list">
+          <div class="a-file-item" data-idx="0" onclick="aToggleFile(0)">
+            <div class="a-file-check" id="a-fchk-0"></div>
+            <div class="a-file-info">
+              <div class="a-file-name">conversations.json</div>
+              <div class="a-file-size">24.3 MB</div>
+              <div class="a-file-prog-wrap" id="a-fpw-0"><div class="a-file-prog-track"><div class="a-file-prog-fill" id="a-fpf-0"></div></div></div>
+              <div class="a-file-done" id="a-fdone-0">✓ 업로드 완료</div>
+            </div>
+          </div>
+          <div class="a-file-item" data-idx="1" onclick="aToggleFile(1)">
+            <div class="a-file-check" id="a-fchk-1"></div>
+            <div class="a-file-info">
+              <div class="a-file-name">memories.json</div>
+              <div class="a-file-size">1.2 MB</div>
+              <div class="a-file-prog-wrap" id="a-fpw-1"><div class="a-file-prog-track"><div class="a-file-prog-fill" id="a-fpf-1"></div></div></div>
+              <div class="a-file-done" id="a-fdone-1">✓ 업로드 완료</div>
+            </div>
+          </div>
+          <div class="a-file-item" data-idx="2" onclick="aToggleFile(2)">
+            <div class="a-file-check" id="a-fchk-2"></div>
+            <div class="a-file-info">
+              <div class="a-file-name">projects.json</div>
+              <div class="a-file-size">3.8 MB</div>
+              <div class="a-file-prog-wrap" id="a-fpw-2"><div class="a-file-prog-track"><div class="a-file-prog-fill" id="a-fpf-2"></div></div></div>
+              <div class="a-file-done" id="a-fdone-2">✓ 업로드 완료</div>
+            </div>
+          </div>
+          <div class="a-file-item" data-idx="3" onclick="aToggleFile(3)">
+            <div class="a-file-check" id="a-fchk-3"></div>
+            <div class="a-file-info">
+              <div class="a-file-name">users.json</div>
+              <div class="a-file-size">0.4 MB</div>
+              <div class="a-file-prog-wrap" id="a-fpw-3"><div class="a-file-prog-track"><div class="a-file-prog-fill" id="a-fpf-3"></div></div></div>
+              <div class="a-file-done" id="a-fdone-3">✓ 업로드 완료</div>
+            </div>
+          </div>
+        </div>
+        <div class="a-success-banner" id="a-s2-success" style="display:none">✓ 4개 파일이 클라우드에 업로드되었습니다</div>
+        <div id="a-s2-hint" style="display:none;font-size:12.5px;color:#444746;text-align:center;margin-top:12px">👆 <strong>옮길 AI</strong> 탭으로 이동하세요</div>
+      </div>
+    </div>
+
+    <!-- Destination AI Panel -->
+    <div id="a-panel-dst" class="a-ai-panel" style="display:none">
+      <!-- Step 4: MCP Connect (dest) -->
+      <div id="a-s4" class="a-step-card">
+        <div class="a-card-title">MCP 서버 연결</div>
+        <div class="a-card-sub">옮길 AI와 클라우드 스토리지를 연결합니다</div>
+        <div class="a-mcp-diagram" id="a-s4-diagram">
+          <div class="a-mcp-node" id="a-s4-node-ai">
+            <div class="a-mcp-node-icon">✦</div>
+            <div class="a-mcp-node-label">옮길 AI</div>
+          </div>
+          <div class="a-mcp-line"></div>
+          <div class="a-mcp-node" id="a-s4-node-mcp">
+            <div class="a-mcp-node-icon" style="font-size:11px;font-weight:700;letter-spacing:-0.02em">MCP</div>
+            <div class="a-mcp-node-label">프로토콜</div>
+          </div>
+          <div class="a-mcp-line"></div>
+          <div class="a-mcp-node" id="a-s4-node-cloud">
+            <div class="a-mcp-node-icon">☁</div>
+            <div class="a-mcp-node-label">클라우드</div>
+          </div>
+        </div>
+        <div class="a-storage-row">
+          <span style="font-size:20px">☁</span>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:500;color:#1f1f1f">클라우드 드라이브</div>
+            <div style="font-size:11.5px;color:#444746">클라우드 스토리지 서비스</div>
+          </div>
+          <span style="font-size:14px;color:#80868b">🔒</span>
+        </div>
+        <div class="a-connecting-state" id="a-s4-connecting">
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px">
+            <div class="a-spinner"></div>
+            <span style="font-size:13.5px;color:#444746">연결 중...</span>
+          </div>
+          <div style="font-size:12px;color:#80868b" id="a-s4-connect-msg">인증 확인 중...</div>
+        </div>
+        <div class="a-success-banner" id="a-s4-success">✓ 클라우드 드라이브에 연결되었습니다</div>
+        <button class="a-connect-btn" id="a-s4-btn" onclick="aStep4Connect()">연결하기</button>
+        <button class="a-next-btn" id="a-s4-next" onclick="aGoStep5()" style="margin-top:10px">다음: 데이터 불러오기 →</button>
+      </div>
+
+      <!-- Step 5: Import data -->
+      <div id="a-s5" class="a-step-card" style="display:none">
+        <div class="a-card-title">클라우드에서 데이터 불러오기</div>
+        <div class="a-card-sub" id="a-s5-sub">이전 AI의 데이터가 감지되었습니다</div>
+        <div class="a-import-list" id="a-import-list">
+          <div class="a-import-item" data-idx="0">
+            <div class="a-import-icon">📄</div>
+            <div class="a-import-info">
+              <div class="a-import-name">conversations.json</div>
+              <div class="a-import-desc">354개 대화</div>
+              <div class="a-file-prog-wrap" id="a-ipw-0" style="display:none"><div class="a-file-prog-track"><div class="a-file-prog-fill" id="a-ipf-0"></div></div></div>
+            </div>
+            <div class="a-import-status" id="a-ist-0">대기</div>
+          </div>
+          <div class="a-import-item" data-idx="1">
+            <div class="a-import-icon">📄</div>
+            <div class="a-import-info">
+              <div class="a-import-name">memories.json</div>
+              <div class="a-import-desc">87개 메모리</div>
+              <div class="a-file-prog-wrap" id="a-ipw-1" style="display:none"><div class="a-file-prog-track"><div class="a-file-prog-fill" id="a-ipf-1"></div></div></div>
+            </div>
+            <div class="a-import-status" id="a-ist-1">대기</div>
+          </div>
+          <div class="a-import-item" data-idx="2">
+            <div class="a-import-icon">📄</div>
+            <div class="a-import-info">
+              <div class="a-import-name">projects.json</div>
+              <div class="a-import-desc">12개 프로젝트</div>
+              <div class="a-file-prog-wrap" id="a-ipw-2" style="display:none"><div class="a-file-prog-track"><div class="a-file-prog-fill" id="a-ipf-2"></div></div></div>
+            </div>
+            <div class="a-import-status" id="a-ist-2">대기</div>
+          </div>
+          <div class="a-import-item" data-idx="3">
+            <div class="a-import-icon">📄</div>
+            <div class="a-import-info">
+              <div class="a-import-name">users.json</div>
+              <div class="a-import-desc">사용자 설정</div>
+              <div class="a-file-prog-wrap" id="a-ipw-3" style="display:none"><div class="a-file-prog-track"><div class="a-file-prog-fill" id="a-ipf-3"></div></div></div>
+            </div>
+            <div class="a-import-status" id="a-ist-3">대기</div>
+          </div>
+        </div>
+        <button class="a-connect-btn" id="a-import-btn" onclick="aStartImport()">가져오기 시작</button>
+        <div class="a-success-banner" id="a-s5-success" style="display:none">✓ AI 데이터 이전이 완료되었습니다</div>
+        <button id="a-done-btn" class="a-done-btn" onclick="condAComplete()" style="display:none">✓ 완료 — 다음 단계로</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -3006,45 +3192,6 @@ const AGENCY = {
   C: { fill:10, name:'User-Led Manual Migration',    tag:'조건 C', ai:'AI 10%', user:'사용자 90%', cls:'c', icon:'', projLabel:'[직접 입력한 프로젝트]' },
 };
 
-// Full dialogue script (9 lines) — only first CAPTION_SHOW_COUNT are displayed
-// The rest play in audio background, giving the feel of a longer process
-const captionScript = [
-  { role:'s', html:'안녕하세요 Claude. 지금부터 사용자(User)님의 <mark class="sg">디지털 페르소나</mark>와 모든 작업 데이터를 인계하겠습니다.',
-              text:'안녕하세요 Claude. 지금부터 사용자님의 디지털 페르소나와 모든 작업 데이터를 인계하겠습니다.' },
-  { role:'t', html:'네 ChatGPT, 준비되었습니다. 사용자님의 <mark class="tg">핵심 맥락</mark>을 데이터 범주별로 수신하겠습니다.',
-              text:'네 ChatGPT, 준비되었습니다. 사용자님의 핵심 맥락을 데이터 범주별로 수신하겠습니다.' },
-  { role:'s', html:'먼저 <mark class="sg">신원 및 지침</mark> 데이터입니다. 사용자님은 디자인 전공 연구자이며, 항상 <mark class="sg">근거 중심의 전문적인 어조</mark>와 <mark class="sg">객관성</mark>을 유지하는 것을 원칙으로 하십니다.',
-              text:'먼저 신원 및 지침 데이터입니다. 사용자님은 디자인 전공 연구자이며, 항상 근거 중심의 전문적인 어조와 객관성을 유지하는 것을 원칙으로 하십니다.' },
-  { role:'t', html:'확인했습니다. 시스템 프롬프트에 반영하여 <mark class="tg">격식 있는 답변 톤</mark>과 <mark class="tg">증거 기반의 추론 방식</mark>을 기본값으로 설정하겠습니다.',
-              text:'확인했습니다. 시스템 프롬프트에 반영하여 격식 있는 답변 톤과 증거 기반의 추론 방식을 기본값으로 설정하겠습니다.' },
-  // Lines below play in audio but are not shown — process continues in background
-  { role:'s', html:'다음은 <mark class="sg">진행 중인 프로젝트</mark>입니다. 현재 수행 중인 [디지털 이사 연구]의 실험 설계 데이터와 관련 문헌 분석 로그를 전송합니다.',
-              text:'다음은 진행 중인 프로젝트입니다. 현재 수행 중인 디지털 이사 연구의 실험 설계 데이터와 관련 문헌 분석 로그를 전송합니다.' },
-  { role:'t', html:'수신 완료. <mark class="tg">기존 연구의 가설</mark>과 진행 단계를 분석하여 맥락이 끊기지 않도록 학습을 마쳤습니다.',
-              text:'수신 완료. 기존 연구의 가설과 진행 단계를 분석하여 맥락이 끊기지 않도록 학습을 마쳤습니다.' },
-  { role:'s', html:'마지막으로 <mark class="sg">선호 스타일</mark>입니다. 복잡한 정보는 <mark class="sg">표(Table) 형식</mark>을 선호하며, 답변은 간결한 개조식 요약을 우선시하십니다.',
-              text:'마지막으로 선호 스타일입니다. 복잡한 정보는 표 형식을 선호하며, 답변은 간결한 개조식 요약을 우선시하십니다.' },
-  { role:'t', html:'사용자님의 모든 취향과 맥락 동기화가 완료되었습니다. 이제 제가 사용자님을 직접 지원하겠습니다. 감사합니다, ChatGPT.',
-              text:'사용자님의 모든 취향과 맥락 동기화가 완료되었습니다. 이제 제가 사용자님을 직접 지원하겠습니다. 감사합니다, ChatGPT.' },
-  { role:'s', html:'좋습니다. <mark class="sg">인계 절차</mark>를 종료합니다.',
-              text:'좋습니다. 인계 절차를 종료합니다.' },
-];
-const CAPTION_SHOW_COUNT = 4; // Show only first half of script; rest continues in audio
-
-// ── TTS ENGINE ─────────────────────────────────────────
-// OpenAI TTS voices — distinctly different personalities
-// 🔵 Source AI → 'onyx'  (deep, authoritative)
-// 🟢 Target AI → 'nova'  (bright, professional)
-const OAI_VOICE = { s: 'onyx', t: 'nova' };
-const OAI_SPEED = { s: 0.92,   t: 1.00  }; // Source slightly slower for gravity
-
-// Web Speech API fallback profiles (used when no API key is set)
-const WSA_PROFILE = {
-  s: { pitch: 1.15, rate: 0.88 },
-  t: { pitch: 0.82, rate: 0.96 },
-};
-
-let ttsActive = false;
 
 // ── Settings: API key management ──────────────────────
 function saveApiKey() {
@@ -3071,127 +3218,8 @@ function updateApiKeyStatus() {
 
 /** Cancel any in-flight audio or speech immediately */
 function stopTTS() {
-  ttsActive = false;
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.src = '';
-    currentAudio = null;
-  }
+  if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-}
-
-// ── OpenAI TTS path ────────────────────────────────────
-/**
- * Fetch one line from OpenAI TTS API → returns Audio element ready to play.
- * Reveals the caption as soon as playback begins.
- */
-async function speakLineOpenAI(index, onAllDone) {
-  if (!ttsActive) return;
-  if (index >= captionScript.length) { if (onAllDone) onAllDone(); return; }
-
-  const line  = captionScript[index];
-  const capEl = document.getElementById('cap-' + index);
-
-  try {
-    const res = await fetch('https://api.openai.com/v1/audio/speech', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'tts-1',
-        input: line.text,
-        voice: OAI_VOICE[line.role],
-        response_format: 'mp3',
-        speed: OAI_SPEED[line.role],
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(`${res.status}: ${err?.error?.message || res.statusText}`);
-    }
-
-    if (!ttsActive) return; // cancelled while fetching
-
-    const blob   = await res.blob();
-    const objUrl = URL.createObjectURL(blob);
-
-    // Reveal caption exactly when audio begins playing
-    const audio = new Audio(objUrl);
-    currentAudio = audio;
-
-    audio.onplay = () => {
-      if (capEl) capEl.classList.add('visible');
-    };
-
-    audio.onended = () => {
-      URL.revokeObjectURL(objUrl);
-      currentAudio = null;
-      if (!ttsActive) return;
-      setTimeout(() => speakLineOpenAI(index + 1, onAllDone), 360);
-    };
-
-    audio.onerror = () => {
-      console.warn('[OpenAI TTS] Audio error on line', index);
-      URL.revokeObjectURL(objUrl);
-      currentAudio = null;
-      if (!ttsActive) return;
-      setTimeout(() => speakLineOpenAI(index + 1, onAllDone), 400);
-    };
-
-    await audio.play();
-
-  } catch (err) {
-    console.error('[OpenAI TTS] Fetch error on line', index, ':', err.message);
-    // Show caption anyway so sequence doesn't stall visually
-    if (capEl) capEl.classList.add('visible');
-    if (!ttsActive) return;
-    setTimeout(() => speakLineOpenAI(index + 1, onAllDone), 600);
-  }
-}
-
-// ── Web Speech API fallback path ───────────────────────
-function getKoreanVoice() {
-  if (!('speechSynthesis' in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
-  return voices.find(v => v.lang === 'ko-KR')
-      || voices.find(v => v.lang.startsWith('ko'))
-      || null;
-}
-
-function speakLineWSA(index, onAllDone) {
-  if (!ttsActive) return;
-  if (index >= captionScript.length) { if (onAllDone) onAllDone(); return; }
-
-  const line   = captionScript[index];
-  const prof   = WSA_PROFILE[line.role];
-  const capEl  = document.getElementById('cap-' + index);
-
-  if (capEl) capEl.classList.add('visible');
-
-  const utt    = new SpeechSynthesisUtterance(line.text);
-  utt.lang     = 'ko-KR';
-  utt.pitch    = prof.pitch;
-  utt.rate     = prof.rate;
-  utt.volume   = 1;
-  const voice  = getKoreanVoice();
-  if (voice) utt.voice = voice;
-
-  utt.onend  = () => { if (!ttsActive) return; setTimeout(() => speakLineWSA(index + 1, onAllDone), 320); };
-  utt.onerror = (e) => { console.warn('[WSA]', e.error); if (!ttsActive) return; setTimeout(() => speakLineWSA(index + 1, onAllDone), 400); };
-
-  window.speechSynthesis.speak(utt);
-}
-
-/** Route to OpenAI TTS or WSA based on whether a key is set */
-function speakLine(index, onAllDone) {
-  if (openaiApiKey.startsWith('sk-') && openaiApiKey.length > 20) {
-    speakLineOpenAI(index, onAllDone);
-  } else {
-    speakLineWSA(index, onAllDone);
-  }
 }
 
 // ── INTRO OVERLAY ──────────────────────────────────────
@@ -3430,114 +3458,268 @@ function startMigration() {
   else                               showBriefing(startCondC);
 }
 
-// ── CONDITION A ────────────────────────────────────────
+// ── CONDITION A — MCP Cloud Flow ───────────────────────
+let aSelectedFiles = new Set();
+
 function startCondA() {
-  stopTTS();
-  chatLog = [];
-  showChat();
-
-  // Chat-first: user initiates migration via message, then overlay launches
-  setTimeout(() => addMessage('user', 'Claude로 이사하려고 해. 내 데이터를 Claude한테 직접 전달해줄 수 있어?'), 500);
-  setTimeout(() => showTyping(), 1500);
-  setTimeout(() => {
-    removeTyping();
-    addMessage('assistant', '물론이죠. 지금까지 축적된 맥락과 선호도 데이터를 Claude와 직접 교환하겠습니다. AI 간 인계 프로세스를 시작할게요.');
-  }, 3000);
-  setTimeout(() => launchCondAOverlay(), 4800);
-}
-
-function launchCondAOverlay() {
-  ttsActive = true;
-
   document.getElementById('cond-a').classList.add('open');
-  const captionsInner = document.getElementById('a-captions-inner');
-  captionsInner.innerHTML = '';
-
-  // Render only the visible portion of the dialogue
-  for (let i = 0; i < CAPTION_SHOW_COUNT; i++) {
-    const line = captionScript[i];
-    const div = document.createElement('div');
-    div.className = 'caption-line';
-    div.id = 'cap-' + i;
-    div.innerHTML = `<div class="caption-icon ${line.role}"></div><span>${line.html}</span>`;
-    captionsInner.appendChild(div);
-  }
-
-  // "Continues in background" indicator — appears after last shown caption
-  const contDiv = document.createElement('div');
-  contDiv.className = 'caption-line';
-  contDiv.id = 'cap-continue';
-  contDiv.innerHTML = `<div class="caption-icon" style="background:rgba(107,101,96,0.25);border-radius:99px"></div>
-    <span style="color:#6b7280;font-size:12px;letter-spacing:0.06em">· · · &nbsp;&nbsp;이전 작업이 계속 진행 중입니다</span>`;
-  captionsInner.appendChild(contDiv);
-
-  // Per-line start offsets (ms) calibrated to 1.25× audio speed
-  // WAV total: ~74s normal / ~59s at 1.25×; lines 3-4 are longer so they appear later
-  const CAP_DELAYS = [800, 7000, 13000, 22000]; // absolute ms from audio start
-
-  // Button unlocks after last visible caption + buffer for "continues" indicator
-  const UNLOCK_AT = 28000; // ~28s into 59s audio
-  let pct = 0;
-  const pctEl = document.getElementById('a-pct');
-  pctEl.textContent = '0%';
-  let pctInterval = setInterval(() => {
-    pct = Math.min(pct + 1, 100);
-    pctEl.textContent = pct + '%';
-    if (pct >= 100) clearInterval(pctInterval);
-  }, UNLOCK_AT / 100);
-
-  // Reset interlock button
-  const doneBtn = document.getElementById('a-done-btn');
-  doneBtn.classList.remove('unlocked');
-  doneBtn.textContent = '이전 완료 대기 중...';
-
-  let unlocked = false;
-  function onAllLinesDone() {
-    if (unlocked) return;
-    unlocked = true;
-    if (pctInterval) clearInterval(pctInterval);
-    pctEl.textContent = '100%';
-    setHint('a-done-btn', 'green');
-    doneBtn.classList.add('unlocked');
-    doneBtn.textContent = '✓ 이전 완료 — 다음 단계로';
-  }
-
-  // Play WAV at 1.25× speed
-  const audio = new Audio('./audio_a.wav');
-  audio.playbackRate = 1.25;
-  currentAudio = audio;
-  audio.play().catch(e => console.warn('[Audio]', e));
-  // Note: we intentionally do NOT use audio.onended as the unlock trigger.
-  // The unlock is purely time-based (setTimeout below) so autoplay-policy failures
-  // or early browser events don't fire condAComplete prematurely.
-
-  // Show captions at calibrated offsets
-  CAP_DELAYS.forEach((delay, i) => {
-    if (i >= CAPTION_SHOW_COUNT) return;
-    setTimeout(() => {
-      if (!ttsActive) return;
-      const capEl = document.getElementById('cap-' + i);
-      if (capEl) capEl.classList.add('visible');
-    }, delay);
+  // Reset all state
+  aSelectedFiles.clear();
+  // Reset step 1
+  ['a-s1-connecting','a-s1-success'].forEach(id => { document.getElementById(id).style.display='none'; });
+  document.getElementById('a-s1-btn').style.display = 'block';
+  document.getElementById('a-s1-btn').disabled = false;
+  document.getElementById('a-s1-btn').textContent = '연결하기';
+  document.getElementById('a-s1-next').style.display = 'none';
+  // Reset diagram nodes
+  ['a-s1-node-ai','a-s1-node-mcp','a-s1-node-cloud','a-s4-node-ai','a-s4-node-mcp','a-s4-node-cloud'].forEach(id => {
+    document.getElementById(id)?.classList.remove('connected');
   });
-
-  // Show "continues" indicator ~5s after last visible caption
-  setTimeout(() => {
-    if (!ttsActive) return;
-    const contEl = document.getElementById('cap-continue');
-    if (contEl) contEl.classList.add('visible');
-  }, CAP_DELAYS[CAPTION_SHOW_COUNT - 1] + 4500);
-
-  // Primary unlock: fires after "continues" indicator has been visible briefly
-  setTimeout(() => { if (ttsActive) onAllLinesDone(); }, UNLOCK_AT);
+  // Reset step 2
+  document.getElementById('a-s2').style.display = 'none';
+  document.getElementById('a-s1').style.display = '';
+  document.getElementById('a-s2-success').style.display = 'none';
+  document.getElementById('a-s2-hint').style.display = 'none';
+  document.getElementById('a-upload-btn').disabled = true;
+  // Reset file items
+  for (let i = 0; i < 4; i++) {
+    const item = document.querySelector(`.a-file-item[data-idx="${i}"]`);
+    item.classList.remove('checked');
+    document.getElementById('a-fchk-'+i).innerHTML = '';
+    document.getElementById('a-fpw-'+i).style.display = 'none';
+    document.getElementById('a-fpf-'+i).style.width = '0';
+    document.getElementById('a-fdone-'+i).style.display = 'none';
+    item.style.pointerEvents = '';
+  }
+  // Reset step 4
+  ['a-s4-connecting','a-s4-success'].forEach(id => { document.getElementById(id).style.display='none'; });
+  document.getElementById('a-s4-btn').style.display = 'block';
+  document.getElementById('a-s4-btn').disabled = false;
+  document.getElementById('a-s4-next').style.display = 'none';
+  // Reset step 5
+  document.getElementById('a-s5').style.display = 'none';
+  document.getElementById('a-s4').style.display = '';
+  document.getElementById('a-s5-success').style.display = 'none';
+  document.getElementById('a-done-btn').style.display = 'none';
+  document.getElementById('a-import-btn').style.display = 'block';
+  document.getElementById('a-import-btn').disabled = false;
+  document.getElementById('a-import-btn').textContent = '가져오기 시작';
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('a-ist-'+i).textContent = '대기';
+    document.getElementById('a-ist-'+i).style.color = '#80868b';
+    document.getElementById('a-ist-'+i).style.fontWeight = '';
+    document.getElementById('a-ipw-'+i).style.display = 'none';
+    document.getElementById('a-ipf-'+i).style.width = '0';
+  }
+  // Start at source tab, step 1
+  switchATab('source');
+  setAStep(1);
+  setHint('a-s1-btn', 'green');
 }
 
-// Interlock: called by the unlocked #a-done-btn
+function setAStep(step) {
+  document.querySelectorAll('#a-step-ind .csi-item').forEach(item => {
+    const s = parseInt(item.dataset.step);
+    item.classList.remove('active','done');
+    if (s < step) item.classList.add('done');
+    else if (s === step) item.classList.add('active');
+  });
+}
+
+function switchATab(tab) {
+  const srcTab = document.getElementById('a-tab-src');
+  const dstTab = document.getElementById('a-tab-dst');
+  const srcPanel = document.getElementById('a-panel-src');
+  const dstPanel = document.getElementById('a-panel-dst');
+  if (tab === 'source') {
+    srcTab.classList.add('active'); dstTab.classList.remove('active');
+    srcPanel.style.display = 'flex'; dstPanel.style.display = 'none';
+    srcTab.classList.remove('needs-action');
+  } else {
+    dstTab.classList.add('active'); srcTab.classList.remove('active');
+    srcPanel.style.display = 'none'; dstPanel.style.display = 'flex';
+    dstTab.classList.remove('needs-action');
+    // Advance to step 4
+    setAStep(4);
+    setHint('a-s4-btn', 'green');
+  }
+}
+
+function aStep1Connect() {
+  const btn = document.getElementById('a-s1-btn');
+  btn.disabled = true;
+  btn.style.display = 'none';
+  clearHint('a-s1-btn');
+  const connecting = document.getElementById('a-s1-connecting');
+  connecting.style.display = 'block';
+  const msgs = ['인증 확인 중...','OAuth 토큰 검증 중...','MCP 핸드셰이크 중...','연결 완료!'];
+  let mi = 0;
+  const msgEl = document.getElementById('a-s1-connect-msg');
+  const msgInterval = setInterval(() => {
+    mi++;
+    if (mi < msgs.length) msgEl.textContent = msgs[mi];
+    else clearInterval(msgInterval);
+  }, 550);
+  setTimeout(() => {
+    clearInterval(msgInterval);
+    connecting.style.display = 'none';
+    // Animate diagram nodes
+    setTimeout(() => document.getElementById('a-s1-node-ai').classList.add('connected'), 0);
+    setTimeout(() => document.getElementById('a-s1-node-mcp').classList.add('connected'), 300);
+    setTimeout(() => document.getElementById('a-s1-node-cloud').classList.add('connected'), 600);
+    document.getElementById('a-s1-success').style.display = 'block';
+    const nextBtn = document.getElementById('a-s1-next');
+    nextBtn.style.display = 'block';
+    setHint('a-s1-next', 'green');
+  }, 2200);
+}
+
+function aGoStep2() {
+  clearHint('a-s1-next');
+  document.getElementById('a-s1').style.display = 'none';
+  document.getElementById('a-s2').style.display = '';
+  setAStep(2);
+}
+
+function aToggleFile(idx) {
+  const item = document.querySelector(`.a-file-item[data-idx="${idx}"]`);
+  if (item.style.pointerEvents === 'none') return;
+  const chk = document.getElementById('a-fchk-'+idx);
+  if (aSelectedFiles.has(idx)) {
+    aSelectedFiles.delete(idx);
+    item.classList.remove('checked');
+    chk.innerHTML = '';
+  } else {
+    aSelectedFiles.add(idx);
+    item.classList.add('checked');
+    chk.innerHTML = '<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  document.getElementById('a-upload-btn').disabled = aSelectedFiles.size === 0;
+}
+
+function aSelectAllFiles() {
+  for (let i = 0; i < 4; i++) {
+    if (!aSelectedFiles.has(i)) aToggleFile(i);
+  }
+}
+
+function aStartUpload() {
+  const btn = document.getElementById('a-upload-btn');
+  btn.disabled = true;
+  btn.textContent = '업로드 중...';
+  // Disable file clicking
+  document.querySelectorAll('.a-file-item').forEach(el => el.style.pointerEvents = 'none');
+  const indices = Array.from(aSelectedFiles).sort();
+  let delay = 0;
+  indices.forEach((idx, pos) => {
+    setTimeout(() => {
+      const fpw = document.getElementById('a-fpw-'+idx);
+      const fpf = document.getElementById('a-fpf-'+idx);
+      fpw.style.display = 'block';
+      // Animate progress
+      let w = 0;
+      const iv = setInterval(() => {
+        w = Math.min(w + 4, 100);
+        fpf.style.width = w + '%';
+        if (w >= 100) {
+          clearInterval(iv);
+          fpw.style.display = 'none';
+          document.getElementById('a-fdone-'+idx).style.display = 'block';
+          // Check if last
+          if (pos === indices.length - 1) {
+            setTimeout(() => {
+              document.getElementById('a-s2-success').style.display = 'block';
+              document.getElementById('a-s2-hint').style.display = 'block';
+              document.getElementById('a-tab-dst').classList.add('needs-action');
+            }, 300);
+          }
+        }
+      }, 22);
+    }, delay);
+    delay += 900;
+  });
+}
+
+function aStep4Connect() {
+  const btn = document.getElementById('a-s4-btn');
+  btn.disabled = true;
+  btn.style.display = 'none';
+  clearHint('a-s4-btn');
+  const connecting = document.getElementById('a-s4-connecting');
+  connecting.style.display = 'block';
+  const msgs = ['인증 확인 중...','업로드된 파일 탐색 중...','MCP 핸드셰이크 중...','연결 완료!'];
+  let mi = 0;
+  const msgEl = document.getElementById('a-s4-connect-msg');
+  const msgInterval = setInterval(() => {
+    mi++;
+    if (mi < msgs.length) msgEl.textContent = msgs[mi];
+    else clearInterval(msgInterval);
+  }, 550);
+  setTimeout(() => {
+    clearInterval(msgInterval);
+    connecting.style.display = 'none';
+    setTimeout(() => document.getElementById('a-s4-node-ai').classList.add('connected'), 0);
+    setTimeout(() => document.getElementById('a-s4-node-mcp').classList.add('connected'), 300);
+    setTimeout(() => document.getElementById('a-s4-node-cloud').classList.add('connected'), 600);
+    document.getElementById('a-s4-success').style.display = 'block';
+    const nextBtn = document.getElementById('a-s4-next');
+    nextBtn.style.display = 'block';
+    setHint('a-s4-next', 'green');
+  }, 2200);
+}
+
+function aGoStep5() {
+  clearHint('a-s4-next');
+  document.getElementById('a-s4').style.display = 'none';
+  document.getElementById('a-s5').style.display = '';
+  setAStep(5);
+  setHint('a-import-btn', 'green');
+}
+
+function aStartImport() {
+  const btn = document.getElementById('a-import-btn');
+  btn.disabled = true;
+  btn.textContent = '가져오는 중...';
+  clearHint('a-import-btn');
+  for (let idx = 0; idx < 4; idx++) {
+    ((i, delay) => {
+      setTimeout(() => {
+        const ist = document.getElementById('a-ist-'+i);
+        ist.textContent = '가져오는 중...';
+        ist.style.color = '#444746';
+        const ipw = document.getElementById('a-ipw-'+i);
+        const ipf = document.getElementById('a-ipf-'+i);
+        ipw.style.display = 'block';
+        let w = 0;
+        const iv = setInterval(() => {
+          w = Math.min(w + 3, 100);
+          ipf.style.width = w + '%';
+          if (w >= 100) {
+            clearInterval(iv);
+            ipw.style.display = 'none';
+            ist.textContent = '✓ 완료';
+            ist.style.color = '#1f1f1f';
+            ist.style.fontWeight = '600';
+            if (i === 3) {
+              setTimeout(() => {
+                btn.style.display = 'none';
+                document.getElementById('a-s5-success').style.display = 'block';
+                const doneBtn = document.getElementById('a-done-btn');
+                doneBtn.style.display = 'block';
+                setHint('a-done-btn', 'green');
+              }, 400);
+            }
+          }
+        }, 18);
+      }, delay);
+    })(idx, idx * 950);
+  }
+}
+
 function condAComplete() {
   clearHint('a-done-btn');
-  stopTTS();
   document.getElementById('cond-a').classList.remove('open');
-  showConclusion(); // full-page summary for all conditions
+  showConclusion();
 }
 
 
